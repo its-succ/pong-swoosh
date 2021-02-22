@@ -21,6 +21,7 @@ module.exports = (socket, userId, channelName) => {
   channel.addChannel(userId, channelId, channelName);
 
   socket.join(channelId);
+  socket.userrole = 'owner';
   socket.username = userId;
   socket.channel = channelId;
   

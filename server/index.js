@@ -13,6 +13,9 @@ const channel = require('./channel');
 const channelsFilePath = './channels.json';
 
 const createChannel = require('./create-channel');
+const closeChannel = require('./close-channel');
+const listChannel = require('./list-channel');
+const joinChannel = require('./join-channel');
 
 /**
  * クライアントの接続
@@ -65,42 +68,39 @@ io.on('connection', (socket) => {
   });
 
   /**
-   * Sign in
+   * コントローラ接続イベント
+   * @param {string} event.userId - ユーザーID
+   * @param {string} event.channelId - チャンネルID
+   * @param {function} callback コールバック関数
    */
-  socket.on('signIn', (signInfos) => {
-    const channelName = signInfos.channelName;
-    const userName = signInfos.userName;
+  socket.once('connectController', (event, callback) => {
+    const joined = joinChannel(io, socket, 'controller', event.userId, event.channelId);
+    const err = !joined ? Error('Channel is not active') : undefined;
+    callback(err, [
+      // デフォルトのポン一覧
+      {}
+    ]);
 
-    console.log('Sign in attempt : ' + userName + ' in #' + channelName);
-
-    // Creates the channel if it doesn't exist
-    if (!channel.getChannel(channelsFilePath, channelName)) {
-      console.log('#' + channelName + ' does not exist.');
-      channel.addChannel(channelsFilePath, channelName);
-    }
-
-    socket.join(channelName);
-    console.log(userName + ' joined #' + channelName);
-    socket.username = userName;
-    socket.channel = channelName;
-    io.in(socket.channel).emit('userSignedIn', userName, channelName);
-    updateConnectedUsers(socket.channel);
+    /**
+     * 効果音イベント
+     * @param {string} event.id - 効果音ID
+     */
+    socket.on('pongSwoosh', (event) => {
+      // TODO
+      // io.in(socket.channel).emit('pongSwoosh', event.id, url, volume);
+    });
   });
-
+  
   /**
-   * Send chat message
+   * リスナー接続イベント
+   * @param {string} event.userId - ユーザーID
+   * @param {string} event.channelId - チャンネルID
+   * @param {function} callback コールバック関数
    */
-  socket.on('sendMessage', (message) => {
-    io.in(socket.channel).emit('sendMessageToClients', socket.username, message);
-  });
-
-  /**
-   * Client disconnect
-   */
-  socket.on('disconnect', () => {
-    io.in(socket.channel).emit('clientDisco', socket.username);
-    socket.leave(socket.channel);
-    updateConnectedUsers(socket.channel);
+  socket.once('connectListener', (event, callback) => {
+    const joined = joinChannel(io, socket, 'listener', event.userId, event.channelId);
+    const err = !joined ? Error('Channel is not active') : undefined;
+    callback(err);
   });
 
   /**
