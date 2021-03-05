@@ -1,5 +1,3 @@
-const channel = require('./channel');
-
 /**
  * チャンネル参加
  *
@@ -13,7 +11,7 @@ const channel = require('./channel');
  */
 module.exports = (io, socket, userRole, userId, channelId) => {
   const connectedSockets = io.of(channelId).sockets;
-  if(connectedSockets.findIndex((s) => s.userrole === 'owner') < 0) {
+  if (connectedSockets.findIndex((s) => s.userrole === 'owner') < 0) {
     console.error('#' + channelId + ' was closed.');
     return undefined;
   }
@@ -22,6 +20,6 @@ module.exports = (io, socket, userRole, userId, channelId) => {
   socket.userrole = userRole;
   socket.username = userId;
   socket.channel = channelId;
-  
+
   return true;
 };

@@ -24,13 +24,18 @@ const saveChannelsFile = (channelsFilePath, channels) => {
 
 /**
  * チャンネルを追加する
- * 
+ *
  * @param {string} userId - ユーザーID
  * @param {string} channelId - チャンネルID
  * @param {string} channelName - チャンネル名
  * @param {string} channelsFilePath - チャンネルファイルパス（指定しない場合は `/channels.json`）
  */
-channel.addChannel = (userId, channelId, channelName, channelsFilePath = DEFAULT_CHANNELS_FILE_PATH) => {
+channel.addChannel = (
+  userId,
+  channelId,
+  channelName,
+  channelsFilePath = DEFAULT_CHANNELS_FILE_PATH
+) => {
   const channelsList = require(channelsFilePath);
   channelsList.push({ name: channelName, id: channelId, createdBy: userId });
   saveChannelsFile(channelsFilePath, channelsList);
@@ -38,7 +43,7 @@ channel.addChannel = (userId, channelId, channelName, channelsFilePath = DEFAULT
 
 /**
  * チャンネル名とユーザーIDが一致するチャンネルを取得する
- * 
+ *
  * @param {string} userId - ユーザーID
  * @param {string} channelName - チャンネル名
  * @param {string} channelsFilePath - チャンネルファイルパス（指定しない場合は `/channels.json`）
@@ -55,7 +60,7 @@ channel.getChannel = (userId, channelName, channelsFilePath = DEFAULT_CHANNELS_F
 
 /**
  * ユーザーIDが一致するチャンネル一覧を取得する
- * 
+ *
  * @param {string} userId - ユーザーID
  * @param {string} channelsFilePath - チャンネルファイルパス（指定しない場合は `/channels.json`）
  * @returns {array} チャンネル一覧

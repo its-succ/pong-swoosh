@@ -1,5 +1,3 @@
-const channel = require('./channel');
-
 /**
  * チャンネル終了
  *
