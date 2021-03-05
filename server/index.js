@@ -8,7 +8,10 @@ http.listen(port);
 console.log('Server running on ' + port);
 
 const io = require('socket.io')(http, {
-  origins: ['http://localhost:5000']
+  cors: {
+    origin: 'http://localhost:5000',
+    methods: ["GET", "POST"]
+  }
 });
 const Redis = require("ioredis");
 
