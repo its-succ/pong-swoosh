@@ -4,8 +4,6 @@
  */
 const port = process.env.PORT || 3000;
 const http = require('http').createServer();
-http.listen(port);
-console.log('Server running on ' + port);
 
 const io = require('socket.io')(http, {
   cors: {
@@ -13,6 +11,10 @@ const io = require('socket.io')(http, {
     methods: ["GET", "POST"]
   }
 });
+
+http.listen(port);
+console.log('Server running on ' + port);
+
 const Redis = require("ioredis");
 
 const { DateTime } = require("luxon");
