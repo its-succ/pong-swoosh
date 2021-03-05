@@ -10,5 +10,5 @@ const channel = require('./channel');
  */
 module.exports = (io, userId, channelId) => {
   const connectedSockets = io.of(channelId).sockets;
-  connectedSockets.each((socket) => socket.leave(socket.channel);
+  connectedSockets.each((socket) => socket.leave(socket.channel));
 };

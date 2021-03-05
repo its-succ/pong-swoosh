@@ -31,13 +31,13 @@ io.on('connection', (socket) => {
   socket.once('createChannel', (event, callback) => {
     console.log(`createChannel "${event.channelName}" from ${event.userId}`);
     const created = createChannel(socket, event.userId, event.channelName);
-    
+
     const err = !created ? Error('Channel can not created.') : undefined;
     callback(err, created);
 
     /**
      * チャンネル削除イベント
-     * 
+     *
      * 作成イベントを送ったソケットでのみリスニングする
      */
     socket.once('deleteChannel', () => {
@@ -47,7 +47,7 @@ io.on('connection', (socket) => {
 
     /**
      * チャンネル切断イベント
-     * 
+     *
      * 削除と同様の動作を行う
      */
     socket.once('disconnect', () => {
@@ -55,7 +55,7 @@ io.on('connection', (socket) => {
       closeChannel(io, event.userId, created);
     });
   });
-  
+
   /**
    * チャンネル一覧取得イベント
    * @param {string} event.userId - ユーザーID
@@ -63,7 +63,7 @@ io.on('connection', (socket) => {
    */
   socket.on('listChannel', (event, callback) => {
     const channels = listChannel(event.userId);
-    
+
     callback(channels);
   });
 
@@ -78,7 +78,16 @@ io.on('connection', (socket) => {
     const err = !joined ? Error('Channel is not active') : undefined;
     callback(err, [
       // デフォルトのポン一覧
-      {}
+      [
+        {id: 1, title: '拍手', url: 'https://soundeffect-lab.info/sound/voice/mp3/people/people-stadium-applause1.mp3'},
+        {id: 2, title: '歓声', url: 'https://soundeffect-lab.info/sound/voice/mp3/people/people-stadium-cheer1.mp3'},
+        {id: 3, title: '笑い', url: 'https://soundeffect-lab.info/sound/voice/mp3/people/people-studio-laugh-large2.mp3'},
+        {id: 4, title: 'えー', url: 'https://soundeffect-lab.info/sound/voice/mp3/people/people-studio-ee1.mp3'},
+        {id: 5, title: 'おぉ...(感動)', url: 'https://soundeffect-lab.info/sound/voice/mp3/line-girl1/line-girl1-oo1.mp3'},
+        {id: 6, title: 'ドンドンパフパフ', url: 'https://soundeffect-lab.info/sound/anime/mp3/dondonpafupafu1.mp3'},
+        {id: 7, title: 'ドラムロール', url: 'https://soundeffect-lab.info/sound/anime/mp3/drum-roll1.mp3'},
+        {id: 8, title: 'ドラ', url: 'https://soundeffect-lab.info/sound/anime/mp3/ban1.mp3'},
+      ]
     ]);
 
     /**
@@ -89,8 +98,16 @@ io.on('connection', (socket) => {
       // TODO
       // io.in(socket.channel).emit('pongSwoosh', event.id, url, volume);
     });
+
+    /**
+     * チャンネル切断イベント
+     */
+    socket.once('disconnect', () => {
+      console.log(`Controller disconnect "${event.channelName}" from ${event.userId}`);
+      socket.leave(socket.channel);
+    });
   });
-  
+
   /**
    * リスナー接続イベント
    * @param {string} event.userId - ユーザーID
@@ -101,6 +118,14 @@ io.on('connection', (socket) => {
     const joined = joinChannel(io, socket, 'listener', event.userId, event.channelId);
     const err = !joined ? Error('Channel is not active') : undefined;
     callback(err);
+
+    /**
+     * チャンネル切断イベント
+     */
+     socket.once('disconnect', () => {
+      console.log(`Controller disconnect "${event.channelName}" from ${event.userId}`);
+      socket.leave(socket.channel);
+    });
   });
 
   /**
