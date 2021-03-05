@@ -3,17 +3,27 @@
  *
  */
 const port = process.env.PORT || 3000;
-const http = require('http').createServer();
+const cors = require('cors');
+const express = require('express');
 
-const io = require('socket.io')(http, {
+const app = express();
+const server = require('http').Server(app);
+
+const io = require('socket.io')(server, {
   cors: {
     origin: 'http://localhost:5000',
     methods: ["GET", "POST"]
   }
 });
 
-http.listen(port);
-console.log('Server running on ' + port);
+const corsOptions = {
+  origin: 'http://localhost:5000',
+};
+app.use(cors(corsOptions));
+
+server.listen(port, () => {
+  console.log('Server running on ' + port);
+});
 
 const Redis = require("ioredis");
 
