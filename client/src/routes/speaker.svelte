@@ -1,68 +1,64 @@
 <script lang="ts">
-import * as io from "socket.io-client"
+import { io } from "socket.io-client"
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
-import { Jumper } from 'svelte-loading-spinners'
+import { Circle3 } from 'svelte-loading-spinners'
+
+type Params = { channelSlug: string };
+export let params: Params;
 
 async function signIn() {
+  let done;
+  const ret = new Promise((resolve) => {
+    done = resolve;
+  });
   const socket = io('https://pong-swoosh-server.herokuapp.com/');
   const channelSlug = params.channelSlug;
   const fp = await FingerprintJS.load();
   const result = await fp.get();
   const visitorId = result.visitorId;
-  await io.emit('signIn', {userName: visitorId, channelSlug});
+
+  socket.on('connect', () => {
+    console.log('connected', socket.id);
+    socket.emit('connectListener', {userId: visitorId, channelId: channelSlug});
+    done();
+  });
+
+  socket.on('disconnect', () => {
+    console.log(socket.id); // undefined
+  });
+
+  socket.on('pongSwoosh', (pongId, url, volume, timestamp) => {
+    // TODO: 効果音再生
+  });
+
+  return ret;
 }
 
-	// Server config
-	var iosocket = io.connect("http://tellki.herokuapp.com", {'sync disconnect on unload': true});
+// For Circle3
+let size = "60";
+let unit = "px";
 
-	$('#sign-in').on('submit', function(event) {
-		event.preventDefault();
-
-		iosocket.emit('signIn', {
-			userName: $('#user-name').val(),
-			channelName: $('#channel').val()
-		});
-	});
-
-	$('#message-to-send').keypress(function(e) {
-		if(e.which === 13) {
-			iosocket.emit('sendMessage', $('#message-to-send').val());
-			$('#message-to-send').val('');
-		}
-	});
-
-	iosocket.on("userSignedIn", function(username, channel) {
-		$("#intro-description").hide();
-		$("#sign-in-container").hide();
-		$("#chat").fadeIn();
-		$("#chat-messages-list").append("<li class='message-item text-success'>" + username + " has signed in.</li>");
-		$("#channel-name-tab").text('#' + channel);
-	});
-
-	iosocket.on("sendMessageToClients", function(username, message) {
-		$("#chat-messages-list").append("<li class='message-item'>" + username + ": " + message + "</li>");
-		$("#chat-messages").animate({scrollTop: $("#chat-messages").prop('scrollHeight')}, 50);
-	});
-
-	iosocket.on("updateConnectedUsers", function(connectedUsers) {
-		$("#number-of-users").text(connectedUsers.length);
-		$("#connected-users-list").text('');
-		$.each(connectedUsers, function(connectedUser, username) {
-			$("#connected-users-list").append("<li id='" + username + "' class='connected-user-item'>" + username + "</li>");
-		});
-	});
-
-	iosocket.on("clientDisco", function(username) {
-		$("#chat-messages-list").append("<li class='message-item text-error'>" + username + " has signed out.</li>");
-	});
-
-});
 </script>
+
+<style>
+  .loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
 
 <main>
 {#await signIn()}
-  <!-- promise is pending -->
-  <p>waiting for the promise to resolve...</p>
+  <div class="loading">
+    <Circle3
+      {size}
+      {unit}
+      ballTopLeft="#FF3E00"
+      ballTopRight="#F8B334"
+      ballBottomLeft="#40B3FF"
+      ballBottomRight="#676778" />
+  </div>
 {:then value}
   <h1>スピーカー画面</h1>
 {:catch error}
