@@ -10,7 +10,7 @@
  * @returns {boolean} 接続に成功したかどうか
  */
 module.exports = (io, socket, userRole, userId, channelId) => {
-  const connectedSockets = io.of(channelId).sockets;
+  const connectedSockets = Array.from(io.of('/').in(channelId).sockets.values());
   if (connectedSockets.findIndex((s) => s.userrole === 'owner') < 0) {
     console.error('#' + channelId + ' was closed.');
     return undefined;

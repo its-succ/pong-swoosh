@@ -147,7 +147,7 @@ io.on('connection', (socket) => {
       const count = redis.incr(`${socket.channel}:${event.id}`);
       const pong = defaultPongs.find((p) => p.id === event.id);
       setTimeout(() => redis.decr(`${socket.channel}:${event.id}`), pong.duration * 1000);
-      const listeners = io.of(socket.channel).sockets.filter((s) => s.userrole === 'listener')
+      const listeners = Array.from(io.of('/').in(socket.channel).sockets.values()).filter((s) => s.userrole === 'listener')
         .length;
       const volume = (count / listeners) * 2;
       const timestamp = DateTime.now().toFormat('yyyyMMddHHmmss');
@@ -172,7 +172,7 @@ io.on('connection', (socket) => {
   socket.once('connectListener', (event, callback) => {
     const joined = joinChannel(io, socket, 'listener', event.userId, event.channelId);
     const err = !joined ? Error('Channel is not active') : undefined;
-    callback(err);
+    if (callback) callback(err);
 
     /**
      * チャンネル切断イベント

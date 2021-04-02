@@ -7,6 +7,6 @@
  * @param {string} channelId -チャンネルID
  */
 module.exports = (io, userId, channelId) => {
-  const connectedSockets = io.of(channelId).sockets;
+  const connectedSockets = Array.from(io.of('/').in(channelId).sockets.values());
   connectedSockets.each((socket) => socket.leave(socket.channel));
 };
