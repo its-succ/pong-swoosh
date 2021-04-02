@@ -11,7 +11,7 @@ async function signIn() {
   const ret = new Promise((resolve) => {
     done = resolve;
   });
-  const socket = io('https://pong-swoosh-server.herokuapp.com/');
+  const socket = io('https://pong-swoosh-server.herokuapp.com');
   const channelSlug = params.channelSlug;
   const fp = await FingerprintJS.load();
   const result = await fp.get();
