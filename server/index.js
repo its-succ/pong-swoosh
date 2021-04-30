@@ -151,7 +151,7 @@ io.on('connection', (socket) => {
         .length;
       const volume = (count / listeners) * 2;
       const timestamp = DateTime.now().toFormat('yyyyMMddHHmmss');
-      io.in(socket.channel).emit('pongSwoosh', event.id, volume, timestamp);
+      io.in(socket.channel).emit('pongSwoosh', event.id, pong.url, volume, timestamp);
     });
 
     /**
