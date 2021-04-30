@@ -1,17 +1,20 @@
 <script lang="ts">
-import { io } from "socket.io-client"
+import { io } from "socket.io-client";
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
-import { Circle3 } from 'svelte-loading-spinners'
+import { Circle3 } from 'svelte-loading-spinners';
+import { SERVER_URL } from '../pong-swoosh';
 
 type Params = { channelSlug: string };
 export let params: Params;
+
+const pongs: any[] = [];
 
 async function signIn() {
   let done;
   const ret = new Promise((resolve) => {
     done = resolve;
   });
-  const socket = io('https://pong-swoosh-server.herokuapp.com');
+  const socket = io(SERVER_URL);
   const channelSlug = params.channelSlug;
   const fp = await FingerprintJS.load();
   const result = await fp.get();
@@ -27,8 +30,26 @@ async function signIn() {
     console.log(socket.id); // undefined
   });
 
-  socket.on('pongSwoosh', (pongId, url, volume, timestamp) => {
-    // TODO: 効果音再生
+  socket.on('pongSwoosh', async (pongId: string, buffer: ArrayBuffer, volume: number, timestamp: string) => {
+    console.log(JSON.stringify({ pongId, volume, timestamp }));
+    if (pongs[pongId] && pongs[pongId].timestamp === timestamp) {
+      pongs[pongId].gainNode.gain.value = volume;
+    } else {
+      window.AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      const ctx = new AudioContext();
+      const audioBuffer = await ctx.decodeAudioData(buffer);
+      const src = ctx.createBufferSource();
+      src.buffer = audioBuffer;
+      src.connect(ctx.destination);
+      pongs[pongId] = {
+        gainNode: ctx.createGain(),
+        timestamp,
+      };
+      src.connect(pongs[pongId].gainNode);
+      pongs[pongId].gainNode.connect(ctx.destination);
+      pongs[pongId].gainNode.gain.value = volume;
+      src.start();
+    }
   });
 
   return ret;

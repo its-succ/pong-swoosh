@@ -2,8 +2,10 @@
  * pong-swoosh server
  *
  */
-const port = process.env.PORT || 3000;
+const debug = require('debug')('pong-swoosh');
+const fetch = require('node-fetch');
 
+const port = process.env.PORT || 3000;
 const server = require('http').createServer();
 
 const io = require('socket.io')(server, {
@@ -49,7 +51,7 @@ const defaultPongs = [
   {
     id: 4,
     title: 'えー',
-    url: 'https://soundeffect-lab.info/sound/voice/mp3/people/people-studio-ee1.mp3',
+    url: 'https://soundeffect-lab.info/sound/voice/mp3/line-girl1/line-girl1-ee1.mp3',
     duration: 1,
   },
   {
@@ -89,7 +91,7 @@ io.on('connection', (socket) => {
    * @param {function} callback コールバック関数
    */
   socket.once('createChannel', (event, callback) => {
-    console.log(`createChannel "${event.channelName}" from ${event.userId}`);
+    debug(`createChannel "${event.channelName}" from ${event.userId}`);
     const created = createChannel(socket, event.userId, event.channelName);
 
     const err = !created ? Error('Channel can not created.') : undefined;
@@ -101,7 +103,7 @@ io.on('connection', (socket) => {
      * 作成イベントを送ったソケットでのみリスニングする
      */
     socket.once('deleteChannel', () => {
-      console.log(`deleteChannel "${event.channelName}" from ${event.userId}`);
+      debug(`deleteChannel "${event.channelName}" from ${event.userId}`);
       closeChannel(io, event.userId, created);
     });
 
@@ -111,7 +113,7 @@ io.on('connection', (socket) => {
      * 削除と同様の動作を行う
      */
     socket.once('disconnect', () => {
-      console.log(`disconnect "${event.channelName}" from ${event.userId}`);
+      debug(`disconnect "${event.channelName}" from ${event.userId}`);
       closeChannel(io, event.userId, created);
     });
   });
@@ -134,7 +136,9 @@ io.on('connection', (socket) => {
    * @param {function} callback コールバック関数
    */
   socket.once('connectController', (event, callback) => {
+    debug('connectController', event);
     const joined = joinChannel(io, socket, 'controller', event.userId, event.channelId);
+    debug('joinChannel', joined);
     const err = !joined ? Error('Channel is not active') : undefined;
     callback(err, defaultPongs);
 
@@ -144,21 +148,29 @@ io.on('connection', (socket) => {
      */
     socket.on('pongSwoosh', async (event) => {
       const redis = new Redis(process.env.REDIS_URL);
-      const count = redis.incr(`${socket.channel}:${event.id}`);
+      debug('pongSwoosh', event, socket);
+      const count = await redis.incr(`${socket.channel}:${event.id}`);
+      debug('COUNT', `${socket.channel}:${event.id}`, count);
       const pong = defaultPongs.find((p) => p.id === event.id);
+      debug('PONG', pong);
       setTimeout(() => redis.decr(`${socket.channel}:${event.id}`), pong.duration * 1000);
       const listeners = Array.from(io.of('/').in(socket.channel).sockets.values()).filter((s) => s.userrole === 'listener')
         .length;
+      debug('LISTENERS', listeners);
       const volume = (count / listeners) * 2;
       const timestamp = DateTime.now().toFormat('yyyyMMddHHmmss');
-      io.in(socket.channel).emit('pongSwoosh', event.id, pong.url, volume, timestamp);
+      if (!pong.buffer) {
+        const response = await fetch(pong.url);
+        pong.buffer = await response.arrayBuffer();
+      }
+      io.in(socket.channel).emit('pongSwoosh', event.id, pong.buffer, volume, timestamp);
     });
 
     /**
      * チャンネル切断イベント
      */
     socket.once('disconnect', () => {
-      console.log(`Controller disconnect "${event.channelName}" from ${event.userId}`);
+      debug(`Controller disconnect "${event.channelName}" from ${event.userId}`);
       socket.leave(socket.channel);
     });
   });
@@ -178,7 +190,7 @@ io.on('connection', (socket) => {
      * チャンネル切断イベント
      */
     socket.once('disconnect', () => {
-      console.log(`Controller disconnect "${event.channelName}" from ${event.userId}`);
+      debug(`Controller disconnect "${event.channelName}" from ${event.userId}`);
       socket.leave(socket.channel);
     });
   });
