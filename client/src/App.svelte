@@ -8,8 +8,8 @@ const routes = {
   '/': Home, // チャンネル作成
   '/contoller/:channelSlug': Controller, // コントローラ
   '/speaker/:channelSlug': Speaker, // スピーカー（リスナー）
-//  '*': NotFound,
-}
+  //  '*': NotFound,
+};
 </script>
 
-<Router {routes}/>
+<Router routes="{routes}" />

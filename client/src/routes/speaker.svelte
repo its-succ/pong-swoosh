@@ -1,5 +1,13 @@
+<style>
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+</style>
+
 <script lang="ts">
-import { io } from "socket.io-client";
+import { io } from 'socket.io-client';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { Circle3 } from 'svelte-loading-spinners';
 import { SERVER_URL } from '../pong-swoosh';
@@ -22,7 +30,7 @@ async function signIn() {
 
   socket.on('connect', () => {
     console.log('connected', socket.id);
-    socket.emit('connectListener', {userId: visitorId, channelId: channelSlug});
+    socket.emit('connectListener', { userId: visitorId, channelId: channelSlug });
     done();
   });
 
@@ -30,59 +38,53 @@ async function signIn() {
     console.log(socket.id); // undefined
   });
 
-  socket.on('pongSwoosh', async (pongId: string, buffer: ArrayBuffer, volume: number, timestamp: string) => {
-    console.log(JSON.stringify({ pongId, volume, timestamp }));
-    if (pongs[pongId] && pongs[pongId].timestamp === timestamp) {
-      pongs[pongId].gainNode.gain.value = volume;
-    } else {
-      window.AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-      const ctx = new AudioContext();
-      const audioBuffer = await ctx.decodeAudioData(buffer);
-      const src = ctx.createBufferSource();
-      src.buffer = audioBuffer;
-      src.connect(ctx.destination);
-      pongs[pongId] = {
-        gainNode: ctx.createGain(),
-        timestamp,
-      };
-      src.connect(pongs[pongId].gainNode);
-      pongs[pongId].gainNode.connect(ctx.destination);
-      pongs[pongId].gainNode.gain.value = volume;
-      src.start();
-    }
-  });
+  socket.on(
+    'pongSwoosh',
+    async (pongId: string, buffer: ArrayBuffer, volume: number, timestamp: string) => {
+      console.log(JSON.stringify({ pongId, volume, timestamp }));
+      if (pongs[pongId] && pongs[pongId].timestamp === timestamp) {
+        pongs[pongId].gainNode.gain.value = volume;
+      } else {
+        window.AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+        const ctx = new AudioContext();
+        const audioBuffer = await ctx.decodeAudioData(buffer);
+        const src = ctx.createBufferSource();
+        src.buffer = audioBuffer;
+        src.connect(ctx.destination);
+        pongs[pongId] = {
+          gainNode: ctx.createGain(),
+          timestamp,
+        };
+        src.connect(pongs[pongId].gainNode);
+        pongs[pongId].gainNode.connect(ctx.destination);
+        pongs[pongId].gainNode.gain.value = volume;
+        src.start();
+      }
+    },
+  );
 
   return ret;
 }
 
 // For Circle3
-let size = "60";
-let unit = "px";
-
+let size = '60';
+let unit = 'px';
 </script>
 
-<style>
-  .loading {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-</style>
-
 <main>
-{#await signIn()}
-  <div class="loading">
-    <Circle3
-      {size}
-      {unit}
-      ballTopLeft="#FF3E00"
-      ballTopRight="#F8B334"
-      ballBottomLeft="#40B3FF"
-      ballBottomRight="#676778" />
-  </div>
-{:then value}
-  <h1>スピーカー画面</h1>
-{:catch error}
-  <h1>接続できませんでした</h1>
-{/await}
+  {#await signIn()}
+    <div class="loading">
+      <Circle3
+        size="{size}"
+        unit="{unit}"
+        ballTopLeft="#FF3E00"
+        ballTopRight="#F8B334"
+        ballBottomLeft="#40B3FF"
+        ballBottomRight="#676778" />
+    </div>
+  {:then value}
+    <h1>スピーカー画面</h1>
+  {:catch error}
+    <h1>接続できませんでした</h1>
+  {/await}
 </main>

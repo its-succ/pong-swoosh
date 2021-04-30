@@ -6,6 +6,7 @@ module.exports = {
   },
   settings: {
     'import/core-modules': ['svelte'],
+    'svelte3/typescript': true,
   },
   env: {
     browser: true,

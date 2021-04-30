@@ -7,5 +7,6 @@
  */
 module.exports = (io, userId, channelId) => {
   const connectedSockets = Array.from(io.of('/').in(channelId).sockets.values());
-  if (typeof connectedSockets.each == 'function') connectedSockets.each((socket) => socket.leave(socket.channel));
+  if (typeof connectedSockets.each === 'function')
+    connectedSockets.each((socket) => socket.leave(socket.channel));
 };

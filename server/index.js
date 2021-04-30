@@ -11,8 +11,8 @@ const server = require('http').createServer();
 const io = require('socket.io')(server, {
   cors: {
     origin: 'http://localhost:5000',
-    methods: ["GET", "POST"],
-    credentials: true
+    methods: ['GET', 'POST'],
+    credentials: true,
   },
 });
 
@@ -154,8 +154,9 @@ io.on('connection', (socket) => {
       const pong = defaultPongs.find((p) => p.id === event.id);
       debug('PONG', pong);
       setTimeout(() => redis.decr(`${socket.channel}:${event.id}`), pong.duration * 1000);
-      const listeners = Array.from(io.of('/').in(socket.channel).sockets.values()).filter((s) => s.userrole === 'listener')
-        .length;
+      const listeners = Array.from(io.of('/').in(socket.channel).sockets.values()).filter(
+        (s) => s.userrole === 'listener'
+      ).length;
       debug('LISTENERS', listeners);
       const volume = (count / listeners) * 2;
       const timestamp = DateTime.now().toFormat('yyyyMMddHHmmss');
