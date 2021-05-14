@@ -40,7 +40,7 @@ const createChannel = async () => {
       console.error(err);
       return;
     }
-    const url = `${location.protocol}//${location.host}/`;
+    const url = location.href;
     controllerUrl = `${url}#/contoller/${id}`;
     speakerUrl = `${url}#/speaker/${id}`;
   });
