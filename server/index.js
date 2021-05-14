@@ -10,7 +10,7 @@ const server = require('http').createServer();
 
 const io = require('socket.io')(server, {
   cors: {
-    origin: 'http://localhost:5000',
+    origin: ['http://localhost:5000', 'https://its-succ.github.io'],
     methods: ['GET', 'POST'],
     credentials: true,
   },
