@@ -21,6 +21,7 @@ server.listen(port, () => {
 });
 
 const Redis = require('ioredis');
+const redis = new Redis(process.env.REDIS_URL);
 
 const { DateTime } = require('luxon');
 
@@ -147,7 +148,6 @@ io.on('connection', (socket) => {
      * @param {string} event.id - 効果音ID
      */
     socket.on('pongSwoosh', async (event) => {
-      const redis = new Redis(process.env.REDIS_URL);
       debug('pongSwoosh', event, socket);
       const count = await redis.incr(`${socket.channel}:${event.id}`);
       debug('COUNT', `${socket.channel}:${event.id}`, count);
