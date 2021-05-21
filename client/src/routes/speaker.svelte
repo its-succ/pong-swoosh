@@ -11,6 +11,7 @@ import { io } from 'socket.io-client';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { Circle3 } from 'svelte-loading-spinners';
 import { SERVER_URL } from '../pong-swoosh';
+import Slider from '@smui/slider';
 
 type Params = { channelSlug: string };
 export let params: Params;
@@ -43,7 +44,7 @@ async function signIn() {
     async (pongId: string, buffer: ArrayBuffer, volume: number, timestamp: string) => {
       console.log(JSON.stringify({ pongId, volume, timestamp }));
       if (pongs[pongId] && pongs[pongId].timestamp === timestamp) {
-        pongs[pongId].gainNode.gain.value = volume;
+        pongs[pongId].gainNode.gain.value = volume * sliderVolume;
       } else {
         window.AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         const ctx = new AudioContext();
@@ -57,7 +58,7 @@ async function signIn() {
         };
         src.connect(pongs[pongId].gainNode);
         pongs[pongId].gainNode.connect(ctx.destination);
-        pongs[pongId].gainNode.gain.value = volume;
+        pongs[pongId].gainNode.gain.value = volume * sliderVolume;
         src.start();
       }
     },
@@ -69,6 +70,8 @@ async function signIn() {
 // For Circle3
 let size = '60';
 let unit = 'px';
+// For Slider
+let sliderVolume = 1;
 </script>
 
 <main>
@@ -84,6 +87,14 @@ let unit = 'px';
     </div>
   {:then value}
     <h1>スピーカー画面</h1>
+    <Slider
+      bind:value={sliderVolume}
+      min={0.1}
+      max={1}
+      step={0.1}
+    />
+    
+    <pre class="status">Volume: {sliderVolume*10} </pre>
   {:catch error}
     <h1>接続できませんでした</h1>
   {/await}
