@@ -1,8 +1,17 @@
 <style>
+main {
+  width: 100%;
+  height: 100%;
+}
 .loading {
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 100%;
+}
+.slider {
+	--sliderPrimary: #FF9800;
+	--sliderSecondary: rgba(0, 0, 0, 0.05);
 }
 </style>
 
@@ -11,7 +20,7 @@ import { io } from 'socket.io-client';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { Circle3 } from 'svelte-loading-spinners';
 import { SERVER_URL } from '../pong-swoosh';
-import Slider from '@smui/slider';
+import Slider from 'svelte-slider';
 
 type Params = { channelSlug: string };
 export let params: Params;
@@ -87,14 +96,9 @@ let sliderVolume = 1;
     </div>
   {:then value}
     <h1>スピーカー画面</h1>
-    <Slider
-      bind:value={sliderVolume}
-      min={0.1}
-      max={1}
-      step={0.1}
-    />
-    
-    <pre class="status">Volume: {sliderVolume*10} </pre>
+    <div class="slider">
+      <Slider on:change={(event) => sliderVolume = event.detail[1]} value={[0, 1]} single />
+    </div>
   {:catch error}
     <h1>接続できませんでした</h1>
   {/await}
