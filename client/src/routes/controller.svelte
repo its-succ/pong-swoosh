@@ -17,6 +17,7 @@ export let params: Params;
 
 let socket;
 let pongs: any[];
+let buttons = {};
 
 async function signIn() {
   let done;
@@ -52,6 +53,8 @@ async function signIn() {
 }
 
 const pongSwoosh = (id) => {
+  buttons[id].disabled = true;
+  setTimeout(() => buttons[id].disabled = false, pongs.find(p => p.id === id).duration * 1000);
   socket.emit('pongSwoosh', { id });
 };
 
@@ -76,7 +79,7 @@ let unit = 'px';
     {#if pongs}
       <ul>
         {#each pongs as pong}
-          <li><button on:click="{() => pongSwoosh(pong.id)}">{pong.title}</button></li>
+          <li><button on:click="{() => pongSwoosh(pong.id)}" bind:this="{buttons[pong.id]}">{pong.title}</button></li>
         {/each}
       </ul>
     {/if}
