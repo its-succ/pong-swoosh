@@ -12,6 +12,10 @@ main {
 .slider {
 	--sliderPrimary: #FF9800;
 	--sliderSecondary: rgba(0, 0, 0, 0.05);
+  margin-left: 30px;
+}
+#volumeup {
+  float: left;
 }
 </style>
 
@@ -21,6 +25,11 @@ import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { Circle3 } from 'svelte-loading-spinners';
 import { SERVER_URL } from '../pong-swoosh';
 import Slider from 'svelte-slider';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faVolumeUp } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from 'fontawesome-svelte';
+
+library.add(faVolumeUp);
 
 type Params = { channelSlug: string };
 export let params: Params;
@@ -96,6 +105,9 @@ let sliderVolume = 1;
     </div>
   {:then value}
     <h1>スピーカー画面</h1>
+    <div id="volumeup">
+      <FontAwesomeIcon icon="volume-up" size="lg"></FontAwesomeIcon>
+    </div>
     <div class="slider">
       <Slider on:change={(event) => sliderVolume = event.detail[1]} value={[0, 1]} single />
     </div>
