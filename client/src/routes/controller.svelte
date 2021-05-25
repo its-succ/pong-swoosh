@@ -1,8 +1,16 @@
 <style>
+main {
+  height: 100%;
+}
 .loading {
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 100%;
+}
+audio {
+  width: 150px;
+  height: 40px;
 }
 </style>
 
@@ -18,6 +26,7 @@ export let params: Params;
 let socket;
 let pongs: any[];
 let buttons = {};
+let audios = {};
 
 async function signIn() {
   let done;
@@ -58,6 +67,10 @@ const pongSwoosh = (id) => {
   socket.emit('pongSwoosh', { id });
 };
 
+const playAudio = (id) => {
+  audios[id].play();
+};
+
 // For Circle3
 let size = '60';
 let unit = 'px';
@@ -79,7 +92,12 @@ let unit = 'px';
     {#if pongs}
       <ul>
         {#each pongs as pong}
-          <li><button on:click="{() => pongSwoosh(pong.id)}" bind:this="{buttons[pong.id]}">{pong.title}</button></li>
+          <li>
+            <button on:click="{() => pongSwoosh(pong.id)}" bind:this="{buttons[pong.id]}">{pong.title}</button>
+            <!-- svelte-ignore a11y-media-has-caption -->
+            <audio src={pong.url} bind:this="{audios[pong.id]}"></audio>
+            <button on:click="{() => playAudio(pong.id)}">視聴 ▶︎</button>
+          </li>
         {/each}
       </ul>
     {/if}
