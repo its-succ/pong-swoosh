@@ -1,8 +1,21 @@
 <style>
+main {
+  width: 100%;
+  height: 100%;
+}
 .loading {
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 100%;
+}
+.slider {
+	--sliderPrimary: #FF9800;
+	--sliderSecondary: rgba(0, 0, 0, 0.05);
+  margin-left: 30px;
+}
+#volumeup {
+  float: left;
 }
 </style>
 
@@ -11,6 +24,12 @@ import { io } from 'socket.io-client';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { Circle3 } from 'svelte-loading-spinners';
 import { SERVER_URL } from '../pong-swoosh';
+import Slider from 'svelte-slider';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faVolumeUp } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from 'fontawesome-svelte';
+
+library.add(faVolumeUp);
 
 type Params = { channelSlug: string };
 export let params: Params;
@@ -43,7 +62,7 @@ async function signIn() {
     async (pongId: string, buffer: ArrayBuffer, volume: number, timestamp: string) => {
       console.log(JSON.stringify({ pongId, volume, timestamp }));
       if (pongs[pongId] && pongs[pongId].timestamp === timestamp) {
-        pongs[pongId].gainNode.gain.value = volume;
+        pongs[pongId].gainNode.gain.value = volume * sliderVolume;
       } else {
         window.AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         const ctx = new AudioContext();
@@ -57,7 +76,7 @@ async function signIn() {
         };
         src.connect(pongs[pongId].gainNode);
         pongs[pongId].gainNode.connect(ctx.destination);
-        pongs[pongId].gainNode.gain.value = volume;
+        pongs[pongId].gainNode.gain.value = volume * sliderVolume;
         src.start();
       }
     },
@@ -69,6 +88,8 @@ async function signIn() {
 // For Circle3
 let size = '60';
 let unit = 'px';
+// For Slider
+let sliderVolume = 1;
 </script>
 
 <main>
@@ -84,6 +105,12 @@ let unit = 'px';
     </div>
   {:then value}
     <h1>スピーカー画面</h1>
+    <div id="volumeup">
+      <FontAwesomeIcon icon="volume-up" size="lg"></FontAwesomeIcon>
+    </div>
+    <div class="slider">
+      <Slider on:change={(event) => sliderVolume = event.detail[1]} value={[0, 1]} single />
+    </div>
   {:catch error}
     <h1>接続できませんでした</h1>
   {/await}

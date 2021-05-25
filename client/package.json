@@ -42,9 +42,13 @@
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^3.0.5",
+    "@fortawesome/fontawesome-svg-core": "^1.2.35",
+    "@fortawesome/free-solid-svg-icons": "^5.15.3",
+    "fontawesome-svelte": "^2.0.1",
     "sirv-cli": "^1.0.0",
     "socket.io": "^3.1.1",
     "socket.io-client": "^3.1.1",
-    "svelte-loading-spinners": "^0.1.4"
+    "svelte-loading-spinners": "^0.1.4",
+    "svelte-slider": "^1.0.0"
   }
 }
