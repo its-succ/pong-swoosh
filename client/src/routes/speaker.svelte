@@ -69,7 +69,6 @@ async function signIn() {
         const audioBuffer = await ctx.decodeAudioData(buffer);
         const src = ctx.createBufferSource();
         src.buffer = audioBuffer;
-        src.connect(ctx.destination);
         pongs[pongId] = {
           gainNode: ctx.createGain(),
           timestamp,
