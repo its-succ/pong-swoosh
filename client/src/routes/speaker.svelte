@@ -62,10 +62,10 @@ async function signIn() {
     'pongSwoosh',
     async (pongId: string, buffer: ArrayBuffer, volume: number, timestamp: string) => {
       console.log(JSON.stringify({ pongId, volume, timestamp }));
-      const adjustedVolume = isMuted ? 0 : volume * sliderVolume;
+      const adjustedVolume = volume * sliderVolume;
       if (pongs[pongId] && pongs[pongId].timestamp === timestamp) {
-        pongs[pongId].volume = volume * sliderVolume;
-        pongs[pongId].gainNode.gain.value = adjustedVolume;
+        pongs[pongId].volume = adjustedVolume;
+        pongs[pongId].gainNode.gain.value = isMuted ? 0 : adjustedVolume;
       } else {
         window.AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         const ctx = new AudioContext();
@@ -78,8 +78,8 @@ async function signIn() {
         };
         src.connect(pongs[pongId].gainNode);
         pongs[pongId].gainNode.connect(ctx.destination);
-        pongs[pongId].volume = volume * sliderVolume;
-        pongs[pongId].gainNode.gain.value = adjustedVolume;
+        pongs[pongId].volume = adjustedVolume;
+        pongs[pongId].gainNode.gain.value = isMuted ? 0 : adjustedVolume;
         src.start();
       }
     },
