@@ -64,6 +64,7 @@ async function signIn() {
       console.log(JSON.stringify({ pongId, volume, timestamp }));
       const adjustedVolume = isMuted ? 0 : volume * sliderVolume;
       if (pongs[pongId] && pongs[pongId].timestamp === timestamp) {
+        pongs[pongId].volume = volume * sliderVolume;
         pongs[pongId].gainNode.gain.value = adjustedVolume;
       } else {
         window.AudioContext = window.AudioContext || (window as any).webkitAudioContext;
@@ -77,6 +78,7 @@ async function signIn() {
         };
         src.connect(pongs[pongId].gainNode);
         pongs[pongId].gainNode.connect(ctx.destination);
+        pongs[pongId].volume = volume * sliderVolume;
         pongs[pongId].gainNode.gain.value = adjustedVolume;
         src.start();
       }
@@ -98,6 +100,13 @@ let volumeIcon = 'volume-up';
 const onClickMute = () => {
   isMuted = !isMuted;
   volumeIcon = !isMuted ? 'volume-up' : 'volume-mute';
+  pongs.forEach(pong => {
+    if (isMuted) {
+      pong.gainNode.gain.value = 0
+    } else {
+      pong.gainNode.gain.value = pong.volume
+    }
+  })
 }
 
 </script>
