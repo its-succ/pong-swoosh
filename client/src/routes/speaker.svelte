@@ -29,8 +29,7 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 import { faVolumeUp, faVolumeMute } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from 'fontawesome-svelte';
 
-library.add(faVolumeUp);
-library.add(faVolumeMute);
+library.add(faVolumeUp, faVolumeMute);
 
 type Params = { channelSlug: string };
 export let params: Params;
