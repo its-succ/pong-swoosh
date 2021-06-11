@@ -9,6 +9,22 @@ main {
   align-items: center;
   height: 100%;
 }
+.play {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  flex-flow: column;
+}
+.play .icon {
+  color: #FF9800;
+  cursor: pointer;
+  display: block;
+}
+.play label {
+  display: block;
+  margin: 5px;
+}
 .slider {
 	--sliderPrimary: #FF9800;
 	--sliderSecondary: rgba(0, 0, 0, 0.05);
@@ -117,8 +133,11 @@ const onClickCanPlay = () => {
 
 <main>
   {#if canPlay === false}
-    <div class="loading" on:click="{onClickCanPlay}">
-      <FontAwesomeIcon icon="play-circle" size="10x"></FontAwesomeIcon>
+    <div class="play">
+      <div class="icon" on:click={onClickCanPlay}>
+        <FontAwesomeIcon icon="play-circle" size="10x"></FontAwesomeIcon>
+      </div>
+      <label>再生して開始</label>
     </div>
   {:else}
     {#await signIn()}
