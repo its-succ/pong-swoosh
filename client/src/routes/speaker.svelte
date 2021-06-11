@@ -9,13 +9,22 @@ main {
   align-items: center;
   height: 100%;
 }
+.volume {
+  display: flex;
+  justify-content: flex-start;
+}
 .slider {
-	--sliderPrimary: #FF9800;
-	--sliderSecondary: rgba(0, 0, 0, 0.05);
-  margin-left: 30px;
+  margin: 0 10px;
+  flex-grow: 1;
+}
+mwc-slider {
+  --mdc-theme-secondary: #FF9800;
+  --mdc-theme-text-primary-on-dark: #white;
+  width: 100%;
 }
 #volumeup {
-  float: left;
+  display: block;
+  margin: auto 0;
 }
 </style>
 
@@ -24,7 +33,7 @@ import { io } from 'socket.io-client';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { Circle3 } from 'svelte-loading-spinners';
 import { SERVER_URL } from '../pong-swoosh';
-import Slider from 'svelte-slider';
+import '@material/mwc-slider';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faVolumeUp, faVolumeMute } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from 'fontawesome-svelte';
@@ -61,10 +70,9 @@ async function signIn() {
     'pongSwoosh',
     async (pongId: string, buffer: ArrayBuffer, volume: number, timestamp: string) => {
       console.log(JSON.stringify({ pongId, volume, timestamp }));
-      const adjustedVolume = volume * sliderVolume;
       if (pongs[pongId] && pongs[pongId].timestamp === timestamp) {
-        pongs[pongId].volume = adjustedVolume;
-        pongs[pongId].gainNode.gain.value = isMuted ? 0 : adjustedVolume;
+        pongs[pongId].volume = volume;
+        pongs[pongId].gainNode.gain.value = isMuted ? 0 : volume * sliderVolume;
       } else {
         window.AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         const ctx = new AudioContext();
@@ -77,8 +85,8 @@ async function signIn() {
         };
         src.connect(pongs[pongId].gainNode);
         pongs[pongId].gainNode.connect(ctx.destination);
-        pongs[pongId].volume = adjustedVolume;
-        pongs[pongId].gainNode.gain.value = isMuted ? 0 : adjustedVolume;
+        pongs[pongId].volume = volume;
+        pongs[pongId].gainNode.gain.value = isMuted ? 0 : volume * sliderVolume;
         src.start();
       }
     },
@@ -91,7 +99,7 @@ async function signIn() {
 let size = '60';
 let unit = 'px';
 // For Slider
-let sliderVolume = 1;
+let sliderVolume = 0.5;
 // For Volume
 let isMuted = false;
 let volumeIcon = 'volume-up';
@@ -104,6 +112,15 @@ const onClickMute = () => {
       pong.gainNode.gain.value = 0
     } else {
       pong.gainNode.gain.value = pong.volume
+    }
+  })
+}
+
+const onChangeVolume = (event) => {
+  sliderVolume = event.target.value / 100;
+  pongs.forEach(pong => {
+    if (!isMuted) {
+      pong.gainNode.gain.value = pong.volume * sliderVolume;
     }
   })
 }
@@ -123,11 +140,13 @@ const onClickMute = () => {
     </div>
   {:then value}
     <h1>スピーカー画面</h1>
-    <div id="volumeup" on:click={onClickMute}>
-      <FontAwesomeIcon icon="{volumeIcon}" size="lg"></FontAwesomeIcon>
-    </div>
-    <div class="slider">
-      <Slider on:change={(event) => sliderVolume = event.detail[1]} value={[0, 1]} single />
+    <div class="volume">
+      <div id="volumeup" on:click={onClickMute}>
+        <FontAwesomeIcon icon="{volumeIcon}" size="lg"></FontAwesomeIcon>
+      </div>
+      <div class="slider">
+        <mwc-slider pin step="1" value="50" min="0" max="100" on:change={onChangeVolume}></mwc-slider>
+      </div>
     </div>
   {:catch error}
     <h1>接続できませんでした</h1>
