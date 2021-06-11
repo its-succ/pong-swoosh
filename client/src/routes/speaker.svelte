@@ -26,10 +26,10 @@ import { Circle3 } from 'svelte-loading-spinners';
 import { SERVER_URL } from '../pong-swoosh';
 import Slider from 'svelte-slider';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faVolumeUp } from '@fortawesome/free-solid-svg-icons';
+import { faVolumeUp, faVolumeMute } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from 'fontawesome-svelte';
 
-library.add(faVolumeUp);
+library.add(faVolumeUp, faVolumeMute);
 
 type Params = { channelSlug: string };
 export let params: Params;
@@ -61,8 +61,10 @@ async function signIn() {
     'pongSwoosh',
     async (pongId: string, buffer: ArrayBuffer, volume: number, timestamp: string) => {
       console.log(JSON.stringify({ pongId, volume, timestamp }));
+      const adjustedVolume = volume * sliderVolume;
       if (pongs[pongId] && pongs[pongId].timestamp === timestamp) {
-        pongs[pongId].gainNode.gain.value = volume * sliderVolume;
+        pongs[pongId].volume = adjustedVolume;
+        pongs[pongId].gainNode.gain.value = isMuted ? 0 : adjustedVolume;
       } else {
         window.AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         const ctx = new AudioContext();
@@ -75,7 +77,8 @@ async function signIn() {
         };
         src.connect(pongs[pongId].gainNode);
         pongs[pongId].gainNode.connect(ctx.destination);
-        pongs[pongId].gainNode.gain.value = volume * sliderVolume;
+        pongs[pongId].volume = adjustedVolume;
+        pongs[pongId].gainNode.gain.value = isMuted ? 0 : adjustedVolume;
         src.start();
       }
     },
@@ -89,6 +92,22 @@ let size = '60';
 let unit = 'px';
 // For Slider
 let sliderVolume = 1;
+// For Volume
+let isMuted = false;
+let volumeIcon = 'volume-up';
+
+const onClickMute = () => {
+  isMuted = !isMuted;
+  volumeIcon = !isMuted ? 'volume-up' : 'volume-mute';
+  pongs.forEach(pong => {
+    if (isMuted) {
+      pong.gainNode.gain.value = 0
+    } else {
+      pong.gainNode.gain.value = pong.volume
+    }
+  })
+}
+
 </script>
 
 <main>
@@ -104,8 +123,8 @@ let sliderVolume = 1;
     </div>
   {:then value}
     <h1>スピーカー画面</h1>
-    <div id="volumeup">
-      <FontAwesomeIcon icon="volume-up" size="lg"></FontAwesomeIcon>
+    <div id="volumeup" on:click={onClickMute}>
+      <FontAwesomeIcon icon="{volumeIcon}" size="lg"></FontAwesomeIcon>
     </div>
     <div class="slider">
       <Slider on:change={(event) => sliderVolume = event.detail[1]} value={[0, 1]} single />
