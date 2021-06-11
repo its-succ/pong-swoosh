@@ -26,10 +26,10 @@ import { Circle3 } from 'svelte-loading-spinners';
 import { SERVER_URL } from '../pong-swoosh';
 import Slider from 'svelte-slider';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faVolumeUp, faVolumeMute } from '@fortawesome/free-solid-svg-icons';
+import { faVolumeUp, faVolumeMute, faPlayCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from 'fontawesome-svelte';
 
-library.add(faVolumeUp, faVolumeMute);
+library.add(faVolumeUp, faVolumeMute, faPlayCircle);
 
 type Params = { channelSlug: string };
 export let params: Params;
@@ -95,6 +95,7 @@ let sliderVolume = 1;
 // For Volume
 let isMuted = false;
 let volumeIcon = 'volume-up';
+let canPlay = false;
 
 const onClickMute = () => {
   isMuted = !isMuted;
@@ -108,28 +109,38 @@ const onClickMute = () => {
   })
 }
 
+const onClickCanPlay = () => {
+  canPlay = !canPlay;
+}
+
 </script>
 
 <main>
-  {#await signIn()}
-    <div class="loading">
-      <Circle3
-        size="{size}"
-        unit="{unit}"
-        ballTopLeft="#FF3E00"
-        ballTopRight="#F8B334"
-        ballBottomLeft="#40B3FF"
-        ballBottomRight="#676778" />
+  {#if canPlay === false}
+    <div class="loading" on:click="{onClickCanPlay}">
+      <FontAwesomeIcon icon="play-circle" size="10x"></FontAwesomeIcon>
     </div>
-  {:then value}
-    <h1>スピーカー画面</h1>
-    <div id="volumeup" on:click={onClickMute}>
-      <FontAwesomeIcon icon="{volumeIcon}" size="lg"></FontAwesomeIcon>
-    </div>
-    <div class="slider">
-      <Slider on:change={(event) => sliderVolume = event.detail[1]} value={[0, 1]} single />
-    </div>
-  {:catch error}
-    <h1>接続できませんでした</h1>
-  {/await}
+  {:else}
+    {#await signIn()}
+      <div class="loading">
+        <Circle3
+          size="{size}"
+          unit="{unit}"
+          ballTopLeft="#FF3E00"
+          ballTopRight="#F8B334"
+          ballBottomLeft="#40B3FF"
+          ballBottomRight="#676778" />
+      </div>
+    {:then value}
+      <h1>スピーカー画面</h1>
+      <div id="volumeup" on:click={onClickMute}>
+        <FontAwesomeIcon icon="{volumeIcon}" size="lg"></FontAwesomeIcon>
+      </div>
+      <div class="slider">
+        <Slider on:change={(event) => sliderVolume = event.detail[1]} value={[0, 1]} single />
+      </div>
+    {:catch error}
+      <h1>接続できませんでした</h1>
+    {/await}
+  {/if}
 </main>
