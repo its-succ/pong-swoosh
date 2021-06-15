@@ -36,6 +36,7 @@ import { SERVER_URL } from '../pong-swoosh';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from 'fontawesome-svelte';
+import qs from 'qs'
 
 library.add(faExclamationTriangle);
 
@@ -54,7 +55,7 @@ const createChannel = async () => {
       return;
     }
     const url = location.href;
-    entranceUrl = `${url}#/entrance/${id}?name=${channelName}`;
+    entranceUrl = `${url}#/entrance/${id}?${qs.stringify({name:channelName})}`;
   });
 };
 

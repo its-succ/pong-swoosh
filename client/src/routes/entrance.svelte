@@ -24,6 +24,12 @@ h1 {
 
 import QrCode from "svelte-qrcode"
 
+import qs from 'qs'
+import { querystring } from 'svelte-spa-router'
+
+$: parsed = qs.parse($querystring)
+
+let channelName: string | undefined;
 let controllerUrl: string | undefined;
 let speakerUrl: string | undefined;
 
@@ -32,6 +38,7 @@ export let params: Params;
 
 const showEntrance = () => {
 
+  channelName = parsed.name;
   const channelSlug = params.channelSlug;
   const url = location.origin;
   controllerUrl = `${url}/#/contoller/${channelSlug}`;
@@ -41,20 +48,23 @@ const showEntrance = () => {
 </script>
 
 <main>
-  <h1>ようこそ！</h1>
+  <h1>ようこそ！ pong-swooshへ！</h1>
+  <h2>チャンネル名: {channelName}</h2>
   <div>
-    <p>URLからコントローラ画面とスピーカ画面を開いてください。</p>
+    <p>QRコードかURLからコントローラ画面とスピーカ画面を開いてください。</p>
+  </div>
+  <div>
+    <h3>コントローラ画面</h3>
+    <p>URL:{controllerUrl}</p>
+    <QrCode value={controllerUrl} />
     <p>コントローラ画面では音をポン出しできます。<br/>ポン出ししたい音は視聴ボタンで確認できます。</p>
-    <p>スピーカ画面からみんながポン出しした音が再生されます。<br/>環境に合わせてボリュームコントロールで音量を調節してください。</p>
   </div>
+
   <div>
-    <ul>
-      <li>コントローラURL:{controllerUrl}</li>
-      <li>スピーカーURL:{speakerUrl}</li>
-    </ul>
-  </div>
-  <div>
+    <h3>スピーカー画面</h3>
+    <p>URL:{speakerUrl}</p>
     <QrCode value={speakerUrl} />
+    <p>スピーカ画面からみんながポン出しした音が再生されます。<br/>画面のボリュームコントロールで音量を調節してください。</p>
   </div>
 </main>
 <svelte:window on:load={showEntrance}/>
