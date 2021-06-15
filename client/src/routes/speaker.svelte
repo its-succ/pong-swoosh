@@ -169,11 +169,13 @@ const onClickCanPlay = () => {
       </div>
     {:then value}
       <h1>スピーカー画面</h1>
-      <div id="volumeup" on:click={onClickMute}>
-        <FontAwesomeIcon icon="{volumeIcon}" size="lg"></FontAwesomeIcon>
-      </div>
-      <div class="slider">
-        <mwc-slider pin step="1" value="50" min="0" max="100" on:change={onChangeVolume}></mwc-slider>
+      <div class="volume">
+        <div id="volumeup" on:click={onClickMute}>
+          <FontAwesomeIcon icon="{volumeIcon}" size="lg"></FontAwesomeIcon>
+        </div>
+        <div class="slider">
+          <mwc-slider pin step="1" value="50" min="0" max="100" on:change={onChangeVolume}></mwc-slider>
+        </div>
       </div>
     {:catch error}
       <h1>接続できませんでした</h1>
