@@ -26,8 +26,7 @@ import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { SERVER_URL } from '../pong-swoosh';
 
 let channelName = '';
-let controllerUrl: string | undefined;
-let speakerUrl: string | undefined;
+let entranceUrl: string | undefined;
 
 const createChannel = async () => {
   const socket = io(SERVER_URL);
@@ -41,10 +40,10 @@ const createChannel = async () => {
       return;
     }
     const url = location.href;
-    controllerUrl = `${url}#/contoller/${id}`;
-    speakerUrl = `${url}#/speaker/${id}`;
+    entranceUrl = `${url}#/entrance/${id}?name=${channelName}`;
   });
 };
+
 </script>
 
 <main>
@@ -54,11 +53,10 @@ const createChannel = async () => {
   <label
     >チャンネル名<input type="text" placeholder="チャンネル名" bind:value="{channelName}" /></label>
   <button on:click="{createChannel}">作成</button>
-  {#if controllerUrl && speakerUrl}
+  {#if entranceUrl}
     <div>
       <ul>
-        <li>コントローラURL:{controllerUrl}</li>
-        <li>スピーカーURL:{speakerUrl}</li>
+        <li>エントランスURL:{entranceUrl}</li>
       </ul>
     </div>
   {/if}
