@@ -9,13 +9,38 @@ main {
   align-items: center;
   height: 100%;
 }
+.volume {
+  display: flex;
+  justify-content: flex-start;
+}
+.play {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  flex-flow: column;
+}
+.play .icon {
+  color: #FF9800;
+  cursor: pointer;
+  display: block;
+}
+.play label {
+  display: block;
+  margin: 5px;
+}
 .slider {
-	--sliderPrimary: #FF9800;
-	--sliderSecondary: rgba(0, 0, 0, 0.05);
-  margin-left: 30px;
+  margin: 0 10px;
+  flex-grow: 1;
+}
+mwc-slider {
+  --mdc-theme-secondary: #FF9800;
+  --mdc-theme-text-primary-on-dark: #white;
+  width: 100%;
 }
 #volumeup {
-  float: left;
+  display: block;
+  margin: auto 0;
 }
 </style>
 
@@ -24,12 +49,12 @@ import { io } from 'socket.io-client';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { Circle3 } from 'svelte-loading-spinners';
 import { SERVER_URL } from '../pong-swoosh';
-import Slider from 'svelte-slider';
+import '@material/mwc-slider';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faVolumeUp } from '@fortawesome/free-solid-svg-icons';
+import { faVolumeUp, faVolumeMute, faPlayCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from 'fontawesome-svelte';
 
-library.add(faVolumeUp);
+library.add(faVolumeUp, faVolumeMute, faPlayCircle);
 
 type Params = { channelSlug: string };
 export let params: Params;
@@ -62,7 +87,8 @@ async function signIn() {
     async (pongId: string, buffer: ArrayBuffer, volume: number, timestamp: string) => {
       console.log(JSON.stringify({ pongId, volume, timestamp }));
       if (pongs[pongId] && pongs[pongId].timestamp === timestamp) {
-        pongs[pongId].gainNode.gain.value = volume * sliderVolume;
+        pongs[pongId].volume = volume;
+        pongs[pongId].gainNode.gain.value = isMuted ? 0 : volume * sliderVolume;
       } else {
         window.AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         const ctx = new AudioContext();
@@ -75,7 +101,8 @@ async function signIn() {
         };
         src.connect(pongs[pongId].gainNode);
         pongs[pongId].gainNode.connect(ctx.destination);
-        pongs[pongId].gainNode.gain.value = volume * sliderVolume;
+        pongs[pongId].volume = volume;
+        pongs[pongId].gainNode.gain.value = isMuted ? 0 : volume * sliderVolume;
         src.start();
       }
     },
@@ -88,29 +115,70 @@ async function signIn() {
 let size = '60';
 let unit = 'px';
 // For Slider
-let sliderVolume = 1;
+let sliderVolume = 0.5;
+// For Volume
+let isMuted = false;
+let volumeIcon = 'volume-up';
+let canPlay = false;
+
+const onClickMute = () => {
+  isMuted = !isMuted;
+  volumeIcon = !isMuted ? 'volume-up' : 'volume-mute';
+  pongs.forEach(pong => {
+    if (isMuted) {
+      pong.gainNode.gain.value = 0
+    } else {
+      pong.gainNode.gain.value = pong.volume
+    }
+  })
+}
+
+const onChangeVolume = (event) => {
+  sliderVolume = event.target.value / 100;
+  pongs.forEach(pong => {
+    if (!isMuted) {
+      pong.gainNode.gain.value = pong.volume * sliderVolume;
+    }
+  })
+}
+
+const onClickCanPlay = () => {
+  canPlay = !canPlay;
+}
+
 </script>
 
 <main>
-  {#await signIn()}
-    <div class="loading">
-      <Circle3
-        size="{size}"
-        unit="{unit}"
-        ballTopLeft="#FF3E00"
-        ballTopRight="#F8B334"
-        ballBottomLeft="#40B3FF"
-        ballBottomRight="#676778" />
+  {#if canPlay === false}
+    <div class="play">
+      <div class="icon" on:click={onClickCanPlay}>
+        <FontAwesomeIcon icon="play-circle" size="10x"></FontAwesomeIcon>
+      </div>
+      <label>再生して開始</label>
     </div>
-  {:then value}
-    <h1>スピーカー画面</h1>
-    <div id="volumeup">
-      <FontAwesomeIcon icon="volume-up" size="lg"></FontAwesomeIcon>
-    </div>
-    <div class="slider">
-      <Slider on:change={(event) => sliderVolume = event.detail[1]} value={[0, 1]} single />
-    </div>
-  {:catch error}
-    <h1>接続できませんでした</h1>
-  {/await}
+  {:else}
+    {#await signIn()}
+      <div class="loading">
+        <Circle3
+          size="{size}"
+          unit="{unit}"
+          ballTopLeft="#FF3E00"
+          ballTopRight="#F8B334"
+          ballBottomLeft="#40B3FF"
+          ballBottomRight="#676778" />
+      </div>
+    {:then value}
+      <h1>スピーカー画面</h1>
+      <div class="volume">
+        <div id="volumeup" on:click={onClickMute}>
+          <FontAwesomeIcon icon="{volumeIcon}" size="lg"></FontAwesomeIcon>
+        </div>
+        <div class="slider">
+          <mwc-slider pin step="1" value="50" min="0" max="100" on:change={onChangeVolume}></mwc-slider>
+        </div>
+      </div>
+    {:catch error}
+      <h1>接続できませんでした</h1>
+    {/await}
+  {/if}
 </main>

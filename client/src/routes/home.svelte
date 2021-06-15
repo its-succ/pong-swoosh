@@ -13,6 +13,15 @@ h1 {
   font-weight: 100;
 }
 
+.warning {
+  background-color:lightyellow;
+  border: 1px solid red;
+}
+
+.warning * {
+  display: inline-block;
+}
+
 @media (min-width: 640px) {
   main {
     max-width: none;
@@ -24,6 +33,11 @@ h1 {
 import { io } from 'socket.io-client';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { SERVER_URL } from '../pong-swoosh';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from 'fontawesome-svelte';
+
+library.add(faExclamationTriangle);
 
 let channelName = '';
 let entranceUrl: string | undefined;
@@ -44,6 +58,13 @@ const createChannel = async () => {
   });
 };
 
+const beforeUnload = (event) => {
+  if (entranceUrl) {
+    event.preventDefault();
+    event.returnValue = `このページを離れると ${channelName} が終了します。よろしいですか？`;
+  }
+  return event.returnValue;
+}
 </script>
 
 <main>
@@ -59,5 +80,10 @@ const createChannel = async () => {
         <li>エントランスURL:{entranceUrl}</li>
       </ul>
     </div>
-  {/if}
+    <div class="warning">
+      <FontAwesomeIcon icon="exclamation-triangle"></FontAwesomeIcon>
+      <strong>このページを離れると {channelName} が終了します。ご注意ください。</strong>
+    </div>
+{/if}
 </main>
+<svelte:window on:beforeunload={beforeUnload}/>
