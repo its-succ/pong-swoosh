@@ -7,7 +7,7 @@ import Controller from './routes/controller.svelte';
 
 const routes = {
   '/': Home, // チャンネル作成
-  '/entrance/:channelSlug': Entrance,
+  '/entrance/:channelSlug/:channelName': Entrance,
   '/contoller/:channelSlug': Controller, // コントローラ
   '/speaker/:channelSlug': Speaker, // スピーカー（リスナー）
   //  '*': NotFound,

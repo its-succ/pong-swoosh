@@ -24,22 +24,17 @@ h1 {
 
 import QrCode from "svelte-qrcode"
 
-import qs from 'qs'
-import { querystring } from 'svelte-spa-router'
-
-$: parsed = qs.parse($querystring)
-
 let channelName: string | undefined;
 let controllerUrl: string | undefined;
 let speakerUrl: string | undefined;
 
-type Params = { channelSlug: string };
+type Params = { channelSlug: string, channelName: string };
 export let params: Params;
 
 const showEntrance = () => {
 
-  channelName = parsed.name;
   const channelSlug = params.channelSlug;
+  channelName = params.channelName;
   const url = location.origin;
   controllerUrl = `${url}/#/contoller/${channelSlug}`;
   speakerUrl = `${url}/#/speaker/${channelSlug}`;
