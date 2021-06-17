@@ -40,8 +40,7 @@ import { FontAwesomeIcon } from 'fontawesome-svelte';
 library.add(faExclamationTriangle);
 
 let channelName = '';
-let controllerUrl: string | undefined;
-let speakerUrl: string | undefined;
+let entranceUrl: string | undefined;
 
 const createChannel = async () => {
   const socket = io(SERVER_URL);
@@ -55,13 +54,12 @@ const createChannel = async () => {
       return;
     }
     const url = location.href;
-    controllerUrl = `${url}#/contoller/${id}`;
-    speakerUrl = `${url}#/speaker/${id}`;
+    entranceUrl = `${url}#/entrance/${id}/${encodeURIComponent(channelName)}`;
   });
 };
 
 const beforeUnload = (event) => {
-  if (controllerUrl || speakerUrl) {
+  if (entranceUrl) {
     event.preventDefault();
     event.returnValue = `このページを離れると ${channelName} が終了します。よろしいですか？`;
   }
@@ -76,11 +74,10 @@ const beforeUnload = (event) => {
   <label
     >チャンネル名<input type="text" placeholder="チャンネル名" bind:value="{channelName}" /></label>
   <button on:click="{createChannel}">作成</button>
-  {#if controllerUrl && speakerUrl}
+  {#if entranceUrl}
     <div>
       <ul>
-        <li>コントローラURL:{controllerUrl}</li>
-        <li>スピーカーURL:{speakerUrl}</li>
+        <li>エントランスURL:{entranceUrl}</li>
       </ul>
     </div>
     <div class="warning">
