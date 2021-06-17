@@ -46,7 +46,6 @@
     "@fortawesome/free-solid-svg-icons": "^5.15.3",
     "@material/mwc-slider": "^0.21.0",
     "fontawesome-svelte": "^2.0.1",
-    "qs": "^6.10.1",
     "sirv-cli": "^1.0.0",
     "socket.io": "^3.1.1",
     "socket.io-client": "^3.1.1",
