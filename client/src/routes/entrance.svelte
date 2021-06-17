@@ -35,7 +35,7 @@ const showEntrance = () => {
 
   const channelSlug = params.channelSlug;
   channelName = params.channelName;
-  const url = location.href;
+  const url = location.origin + location.pathname;
   controllerUrl = `${url}/#/contoller/${channelSlug}`;
   speakerUrl = `${url}/#/speaker/${channelSlug}`;
 
