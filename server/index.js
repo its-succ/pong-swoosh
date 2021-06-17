@@ -158,7 +158,7 @@ io.on('connection', (socket) => {
         (s) => s.userrole === 'listener'
       ).length;
       debug('LISTENERS', listeners);
-      const volume = (count / listeners) * 2;
+      const volume = Math.sin(Math.PI * 90 * (count / listeners) /180) * 2;
       const timestamp = DateTime.now().toFormat('yyyyMMddHHmmss');
       if (!pong.buffer) {
         const response = await fetch(pong.url);
