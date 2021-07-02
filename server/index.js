@@ -164,7 +164,7 @@ io.on('connection', (socket) => {
         const response = await fetch(pong.url);
         pong.buffer = await response.arrayBuffer();
       }
-      io.in(socket.channel).emit('pongSwoosh', event.id, pong.buffer, volume, timestamp);
+      io.in(socket.channel).emit('pongSwoosh', event.id, pong.buffer, volume, timestamp, listeners);
     });
 
     /**
@@ -183,6 +183,7 @@ io.on('connection', (socket) => {
    * @param {function} callback コールバック関数
    */
   socket.once('connectListener', (event, callback) => {
+    // TODO
     const joined = joinChannel(io, socket, 'listener', event.userId, event.channelId);
     const err = !joined ? Error('Channel is not active') : undefined;
     if (callback) callback(err);
