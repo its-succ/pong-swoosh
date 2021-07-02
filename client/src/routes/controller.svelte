@@ -63,7 +63,7 @@ async function signIn() {
 
 const pongSwoosh = (id) => {
   buttons[id].disabled = true;
-  setTimeout(() => buttons[id].disabled = false, pongs.find(p => p.id === id).duration * 1000);
+  setTimeout(() => (buttons[id].disabled = false), pongs.find((p) => p.id === id).duration * 1000);
   socket.emit('pongSwoosh', { id });
 };
 
@@ -93,9 +93,10 @@ let unit = 'px';
       <ul>
         {#each pongs as pong}
           <li>
-            <button on:click="{() => pongSwoosh(pong.id)}" bind:this="{buttons[pong.id]}">{pong.title}</button>
+            <button on:click="{() => pongSwoosh(pong.id)}" bind:this="{buttons[pong.id]}"
+              >{pong.title}</button>
             <!-- svelte-ignore a11y-media-has-caption -->
-            <audio src={pong.url} bind:this="{audios[pong.id]}"></audio>
+            <audio src="{pong.url}" bind:this="{audios[pong.id]}"></audio>
             <button on:click="{() => playAudio(pong.id)}">視聴 ▶︎</button>
           </li>
         {/each}

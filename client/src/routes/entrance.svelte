@@ -21,24 +21,21 @@ h1 {
 </style>
 
 <script lang="ts">
-
-import QrCode from "svelte-qrcode"
+import QrCode from 'svelte-qrcode';
 
 let channelName: string | undefined;
 let controllerUrl: string | undefined;
 let speakerUrl: string | undefined;
 
-type Params = { channelSlug: string, channelName: string };
+type Params = { channelSlug: string; channelName: string };
 export let params: Params;
 
 const showEntrance = () => {
-
   const channelSlug = params.channelSlug;
   channelName = params.channelName;
   const url = location.origin + location.pathname;
   controllerUrl = `${url}/#/contoller/${channelSlug}`;
   speakerUrl = `${url}/#/speaker/${channelSlug}`;
-
 };
 </script>
 
@@ -51,15 +48,19 @@ const showEntrance = () => {
   <div>
     <h3>コントローラ画面</h3>
     <p>URL:{controllerUrl}</p>
-    <QrCode value={controllerUrl} />
-    <p>コントローラ画面では音をポン出しできます。<br/>ポン出ししたい音は視聴ボタンで確認できます。</p>
+    <QrCode value="{controllerUrl}" />
+    <p>
+      コントローラ画面では音をポン出しできます。<br />ポン出ししたい音は視聴ボタンで確認できます。
+    </p>
   </div>
 
   <div>
     <h3>スピーカー画面</h3>
     <p>URL:{speakerUrl}</p>
-    <QrCode value={speakerUrl} />
-    <p>スピーカ画面からみんながポン出しした音が再生されます。<br/>画面のボリュームコントロールで音量を調節してください。</p>
+    <QrCode value="{speakerUrl}" />
+    <p>
+      スピーカ画面からみんながポン出しした音が再生されます。<br />画面のボリュームコントロールで音量を調節してください。
+    </p>
   </div>
 </main>
-<svelte:window on:load={showEntrance}/>
+<svelte:window on:load="{showEntrance}" />
