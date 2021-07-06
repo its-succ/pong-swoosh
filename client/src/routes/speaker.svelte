@@ -21,7 +21,7 @@ main {
   flex-flow: column;
 }
 .play .icon {
-  color: #FF9800;
+  color: #ff9800;
   cursor: pointer;
   display: block;
 }
@@ -34,7 +34,7 @@ main {
   flex-grow: 1;
 }
 mwc-slider {
-  --mdc-theme-secondary: #FF9800;
+  --mdc-theme-secondary: #ff9800;
   --mdc-theme-text-primary-on-dark: #white;
   width: 100%;
 }
@@ -124,35 +124,34 @@ let canPlay = false;
 const onClickMute = () => {
   isMuted = !isMuted;
   volumeIcon = !isMuted ? 'volume-up' : 'volume-mute';
-  pongs.forEach(pong => {
+  pongs.forEach((pong) => {
     if (isMuted) {
-      pong.gainNode.gain.value = 0
+      pong.gainNode.gain.value = 0;
     } else {
-      pong.gainNode.gain.value = pong.volume
+      pong.gainNode.gain.value = pong.volume;
     }
-  })
-}
+  });
+};
 
 const onChangeVolume = (event) => {
   sliderVolume = event.target.value / 100;
-  pongs.forEach(pong => {
+  pongs.forEach((pong) => {
     if (!isMuted) {
       pong.gainNode.gain.value = pong.volume * sliderVolume;
     }
-  })
-}
+  });
+};
 
 const onClickCanPlay = () => {
   canPlay = !canPlay;
-}
-
+};
 </script>
 
 <main>
   {#if canPlay === false}
     <div class="play">
-      <div class="icon" on:click={onClickCanPlay}>
-        <FontAwesomeIcon icon="play-circle" size="10x"></FontAwesomeIcon>
+      <div class="icon" on:click="{onClickCanPlay}">
+        <FontAwesomeIcon icon="play-circle" size="10x" />
       </div>
       <label>再生して開始</label>
     </div>
@@ -170,11 +169,12 @@ const onClickCanPlay = () => {
     {:then value}
       <h1>スピーカー画面</h1>
       <div class="volume">
-        <div id="volumeup" on:click={onClickMute}>
-          <FontAwesomeIcon icon="{volumeIcon}" size="lg"></FontAwesomeIcon>
+        <div id="volumeup" on:click="{onClickMute}">
+          <FontAwesomeIcon icon="{volumeIcon}" size="lg" />
         </div>
         <div class="slider">
-          <mwc-slider pin step="1" value="50" min="0" max="100" on:change={onChangeVolume}></mwc-slider>
+          <mwc-slider pin step="1" value="50" min="0" max="100" on:change="{onChangeVolume}"
+          ></mwc-slider>
         </div>
       </div>
     {:catch error}
