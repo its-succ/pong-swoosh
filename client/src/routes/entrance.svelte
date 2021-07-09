@@ -121,12 +121,12 @@ const showEntrance = () => {
       <section>
         <article>
           <h3>
-            <FontAwesomeIcon icon="{faGamepad}" size="2x" /><span class="text">コントローラ</span>
+            <FontAwesomeIcon icon="{faGamepad}" size="2x" /><span class="text">コントローラー</span>
           </h3>
           <p class="qr"><QrCode value="{controllerUrl}" /></p>
           <a href="{controllerUrl}">{controllerUrl}</a>
           <p>
-            コントローラ画面から効果音をポン出しできます。<br />効果音は視聴ボタンで確認できます。
+            コントローラー画面から効果音をポン出しできます。<br />効果音は視聴ボタンで確認できます。
           </p>
         </article>
         <article>
