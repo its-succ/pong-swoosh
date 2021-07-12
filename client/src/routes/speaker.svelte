@@ -60,6 +60,7 @@ type Params = { channelSlug: string };
 export let params: Params;
 
 const pongs: any[] = [];
+let participants: number | undefined = undefined;
 
 async function signIn() {
   let done;
@@ -84,8 +85,8 @@ async function signIn() {
 
   socket.on(
     'pongSwoosh',
-    async (pongId: string, buffer: ArrayBuffer, volume: number, timestamp: string) => {
-      console.log(JSON.stringify({ pongId, volume, timestamp }));
+    async (pongId: string, buffer: ArrayBuffer, volume: number, timestamp: string, listeners:number) => {
+      console.log(JSON.stringify({ pongId, volume, timestamp, listeners }));
       if (pongs[pongId] && pongs[pongId].timestamp === timestamp) {
         pongs[pongId].volume = volume;
         pongs[pongId].gainNode.gain.value = isMuted ? 0 : volume * sliderVolume;
@@ -105,6 +106,7 @@ async function signIn() {
         pongs[pongId].gainNode.gain.value = isMuted ? 0 : volume * sliderVolume;
         src.start();
       }
+      participants = listeners
     },
   );
 
@@ -177,6 +179,7 @@ const onClickCanPlay = () => {
           <mwc-slider pin step="1" value="50" min="0" max="100" on:change={onChangeVolume}></mwc-slider>
         </div>
       </div>
+      <div>現在の参加人数は{participants}です</div>
     {:catch error}
       <h1>接続できませんでした</h1>
     {/await}
