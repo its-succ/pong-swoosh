@@ -1,23 +1,63 @@
 <style>
+:global(body) {
+  margin: 0;
+  padding: 0;
+}
+
 main {
+  padding: 0;
+  margin: 0 auto;
   width: 100%;
   height: 100%;
 }
+
+mwc-top-app-bar {
+  --mdc-theme-primary: #00bcd4;
+  --mdc-theme-on-primary: white;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+[slot='title'] {
+  font-family: 'Roboto Mono', monospace;
+  -webkit-font-smoothing: antialiased;
+  font-size: 2rem;
+  line-height: 2rem;
+  letter-spacing: 0.4px;
+  text-align: center;
+}
+
+h2 {
+  margin-left: 40px;
+}
+h2 .text {
+  display: inline-block;
+  vertical-align: top;
+  margin-top: 10px;
+  padding-left: 2rem;
+  font-size: 1.4rem;
+  font-weight: normal;
+}
+
 .loading {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
+  height: 100vh;
+  flex-flow: column;
 }
 .volume {
   display: flex;
   justify-content: flex-start;
+  padding: 40px;
 }
 .play {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
+  height: 100vh;
   flex-flow: column;
 }
 .play .icon {
@@ -45,16 +85,23 @@ mwc-slider {
 </style>
 
 <script lang="ts">
+import '@material/mwc-top-app-bar';
+import '@material/mwc-snackbar';
 import { io } from 'socket.io-client';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { Circle3 } from 'svelte-loading-spinners';
 import { SERVER_URL } from '../pong-swoosh';
 import '@material/mwc-slider';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faVolumeUp, faVolumeMute, faPlayCircle } from '@fortawesome/free-solid-svg-icons';
+import {
+  faVolumeUp,
+  faVolumeMute,
+  faPlayCircle,
+  faHeadphones,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from 'fontawesome-svelte';
 
-library.add(faVolumeUp, faVolumeMute, faPlayCircle);
+library.add(faVolumeUp, faVolumeMute, faPlayCircle, faHeadphones);
 
 type Params = { channelSlug: string };
 export let params: Params;
@@ -148,37 +195,44 @@ const onClickCanPlay = () => {
 </script>
 
 <main>
-  {#if canPlay === false}
-    <div class="play">
-      <div class="icon" on:click="{onClickCanPlay}">
-        <FontAwesomeIcon icon="play-circle" size="10x" />
-      </div>
-      <label>再生して開始</label>
-    </div>
-  {:else}
-    {#await signIn()}
-      <div class="loading">
-        <Circle3
-          size="{size}"
-          unit="{unit}"
-          ballTopLeft="#FF3E00"
-          ballTopRight="#F8B334"
-          ballBottomLeft="#40B3FF"
-          ballBottomRight="#676778" />
-      </div>
-    {:then value}
-      <h1>スピーカー画面</h1>
-      <div class="volume">
-        <div id="volumeup" on:click="{onClickMute}">
-          <FontAwesomeIcon icon="{volumeIcon}" size="lg" />
+  <mwc-top-app-bar>
+    <h1 slot="title">pong-swoosh</h1>
+    {#if canPlay === false}
+      <div class="play">
+        <div class="icon" on:click="{onClickCanPlay}">
+          <FontAwesomeIcon icon="play-circle" size="10x" />
         </div>
-        <div class="slider">
-          <mwc-slider pin step="1" value="50" min="0" max="100" on:change="{onChangeVolume}"
-          ></mwc-slider>
-        </div>
+        <label>再生して開始</label>
       </div>
-    {:catch error}
-      <h1>接続できませんでした</h1>
-    {/await}
-  {/if}
+    {:else}
+      {#await signIn()}
+        <div class="loading">
+          <Circle3
+            size="{size}"
+            unit="{unit}"
+            ballTopLeft="#FF3E00"
+            ballTopRight="#F8B334"
+            ballBottomLeft="#40B3FF"
+            ballBottomRight="#676778" />
+        </div>
+      {:then value}
+        <div>
+          <h2>
+            <FontAwesomeIcon icon="{faHeadphones}" size="2x" /><span class="text">スピーカー</span>
+          </h2>
+          <div class="volume">
+            <div id="volumeup" on:click="{onClickMute}">
+              <FontAwesomeIcon icon="{volumeIcon}" size="lg" />
+            </div>
+            <div class="slider">
+              <mwc-slider pin step="1" value="50" min="0" max="100" on:change="{onChangeVolume}"
+              ></mwc-slider>
+            </div>
+          </div>
+        </div>
+      {:catch error}
+        <mwc-snackbar labelText="接続できませんでした" open timeoutMs="-1"></mwc-snackbar>
+      {/await}
+    {/if}
+  </mwc-top-app-bar>
 </main>
