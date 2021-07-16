@@ -170,7 +170,7 @@ let unit = 'px';
                 <!-- svelte-ignore a11y-media-has-caption -->
                 <audio src="{pong.url}" bind:this="{audios[pong.id]}"></audio>
                 <!-- svelte-ignore a11y-invalid-attribute -->
-                <a href="javascript:void(0)" on:click="{() => playAudio(pong.id)}"><FontAwesomeIcon icon="{faVolumeUp}"/><span class="text">視聴</span></a>
+                <a href="javascript:void(0)" on:click="{() => playAudio(pong.id)}"><FontAwesomeIcon icon="{faVolumeUp}"/><span class="text">試聴</span></a>
               </li>
             {/each}
           </ul>
