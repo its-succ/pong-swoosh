@@ -82,6 +82,12 @@ mwc-slider {
   display: block;
   margin: auto 0;
 }
+
+.partipants {
+  display: flex;
+  justify-content: flex-end;
+  padding: 20px 40px;
+}
 </style>
 
 <script lang="ts">
@@ -153,7 +159,7 @@ async function signIn() {
         pongs[pongId].gainNode.gain.value = isMuted ? 0 : volume * sliderVolume;
         src.start();
       }
-      participants = listeners
+      participants = listeners || 0
     },
   );
 
@@ -232,7 +238,7 @@ const onClickCanPlay = () => {
             </div>
           </div>
         </div>
-        <div>現在の参加人数は{participants}です</div>
+        <div class="partipants">現在の参加人数は{participants}です</div>
       {:catch error}
         <mwc-snackbar labelText="接続できませんでした" open timeoutMs="-1"></mwc-snackbar>
       {/await}
