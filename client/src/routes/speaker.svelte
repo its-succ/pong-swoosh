@@ -113,7 +113,7 @@ async function signIn() {
   const ret = new Promise((resolve) => {
     done = resolve;
   });
-  const socket = io(SERVER_URL);
+  const socket = io(SERVER_URL, { forceNew: true });
   const channelSlug = params.channelSlug;
   const fp = await FingerprintJS.load();
   const result = await fp.get();
