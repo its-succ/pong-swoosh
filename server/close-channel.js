@@ -10,13 +10,9 @@ const debug = require('debug')('pong-swoosh');
  */
 module.exports = (io, userId, channelId) => {
   const connectedSockets = Array.from(io.of('/').in(channelId).sockets.values());
-  if (typeof connectedSockets.each === 'function') {
-    connectedSockets.each((socket) => {
-      debug(`Leave from ${socket.channel} ${socket.username}@${socket.userrole}`);
-      socket.leave(socket.channel);
-    });
-  } else {
-    console.error('connectedSockets.each not function');
-  }
+  connectedSockets.forEach((socket) => {
+    debug(`Leave from ${socket.channel} ${socket.username}@${socket.userrole}`);
+    socket.leave(socket.channel);
+  });
   channel.removeChannel(userId, channelId);
 };

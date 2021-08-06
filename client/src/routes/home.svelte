@@ -136,7 +136,7 @@ const createChannel = async () => {
     return;
   }
 
-  socket = io(SERVER_URL);
+  socket = io(SERVER_URL, { forceNew: true });
   const fp = await FingerprintJS.load();
   const result = await fp.get();
   const userId = result.visitorId;

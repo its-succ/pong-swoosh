@@ -125,6 +125,10 @@ async function signIn() {
     done();
   });
 
+  socket.on("connect_error", (error) => {
+    console.error(error);
+  });
+
   socket.on('disconnect', () => {
     console.log(socket.id); // undefined
   });
@@ -202,6 +206,7 @@ const onClickCanPlay = () => {
         <div class="icon" on:click="{onClickCanPlay}">
           <FontAwesomeIcon icon="play-circle" size="10x" />
         </div>
+        <!-- svelte-ignore a11y-label-has-associated-control -->
         <label>再生して開始</label>
       </div>
     {:else}

@@ -103,9 +103,13 @@ io.on('connection', (socket) => {
      *
      * 作成イベントを送ったソケットでのみリスニングする
      */
-    socket.once('deleteChannel', () => {
+    socket.once('deleteChannel', async () => {
       debug(`deleteChannel "${event.channelName}" from ${event.userId}`);
-      closeChannel(io, event.userId, event.channelName);
+      closeChannel(io, event.userId, created);
+      const keys = await redis.keys(`${created}:*`);
+      const pipeline = redis.pipeline();
+      keys.forEach((key) => pipeline.del(key));
+      pipeline.exec();
     });
 
     /**
