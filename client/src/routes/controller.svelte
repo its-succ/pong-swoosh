@@ -101,7 +101,7 @@ async function signIn() {
   const ret = new Promise((resolve) => {
     done = resolve;
   });
-  socket = io(SERVER_URL);
+  socket = io(SERVER_URL, { forceNew: true });
   const channelSlug = params.channelSlug;
   const fp = await FingerprintJS.load();
   const result = await fp.get();
@@ -121,6 +121,10 @@ async function signIn() {
       },
     );
     done();
+  });
+
+  socket.on("connect_error", (error) => {
+    console.error(error);
   });
 
   socket.on('disconnect', () => {

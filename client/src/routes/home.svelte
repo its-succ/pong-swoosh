@@ -136,7 +136,7 @@ const createChannel = async () => {
     return;
   }
 
-  socket = io(SERVER_URL);
+  socket = io(SERVER_URL, { forceNew: true });
   const fp = await FingerprintJS.load();
   const result = await fp.get();
   const userId = result.visitorId;
@@ -167,8 +167,15 @@ const copyToClipbord = () => {
 };
 
 const closeChannel = () => {
+  socket.emit('deleteChannel');
   socket.close();
   entranceUrl = undefined;
+};
+
+const unload = () => {
+  if (entranceUrl) {
+    closeChannel();
+  }
 };
 </script>
 
@@ -196,7 +203,7 @@ const closeChannel = () => {
         <mwc-snackbar
           id="copiedToClipbord"
           labelText="クリップボードにURLをコピーしました"
-          timeoutMs="2000"></mwc-snackbar>
+          timeoutMs="4000"></mwc-snackbar>
       {:else}
         <form>
           <mwc-textfield
@@ -226,9 +233,9 @@ const closeChannel = () => {
         <mwc-snackbar
           id="createError"
           labelText="そのチャンネル名は既に利用されています"
-          timeoutMs="2000"></mwc-snackbar>
+          timeoutMs="4000"></mwc-snackbar>
       {/if}
     </div>
   </mwc-top-app-bar>
 </main>
-<svelte:window on:beforeunload="{beforeUnload}" />
+<svelte:window on:beforeunload="{beforeUnload}" on:unload="{unload}" />

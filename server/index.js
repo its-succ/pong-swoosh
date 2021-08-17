@@ -103,9 +103,13 @@ io.on('connection', (socket) => {
      *
      * 作成イベントを送ったソケットでのみリスニングする
      */
-    socket.once('deleteChannel', () => {
+    socket.once('deleteChannel', async () => {
       debug(`deleteChannel "${event.channelName}" from ${event.userId}`);
       closeChannel(io, event.userId, created);
+      const keys = await redis.keys(`${created}:*`);
+      const pipeline = redis.pipeline();
+      keys.forEach((key) => pipeline.del(key));
+      pipeline.exec();
     });
 
     /**
@@ -115,7 +119,6 @@ io.on('connection', (socket) => {
      */
     socket.once('disconnect', () => {
       debug(`disconnect "${event.channelName}" from ${event.userId}`);
-      closeChannel(io, event.userId, created);
     });
   });
 
@@ -158,7 +161,7 @@ io.on('connection', (socket) => {
         (s) => s.userrole === 'listener'
       ).length;
       debug('LISTENERS', listeners);
-      const volume = Math.sin(Math.PI * 90 * (count / listeners) /180) * 2;
+      const volume = Math.sin((Math.PI * 90 * (count / listeners)) / 180) * 2;
       const timestamp = DateTime.now().toFormat('yyyyMMddHHmmss');
       if (!pong.buffer) {
         const response = await fetch(pong.url);
@@ -183,7 +186,9 @@ io.on('connection', (socket) => {
    * @param {function} callback コールバック関数
    */
   socket.once('connectListener', (event, callback) => {
+    debug('connectListener', event);
     const joined = joinChannel(io, socket, 'listener', event.userId, event.channelId);
+    debug('joinChannel', joined);
     const err = !joined ? Error('Channel is not active') : undefined;
     if (callback) callback(err);
 
@@ -191,7 +196,7 @@ io.on('connection', (socket) => {
      * チャンネル切断イベント
      */
     socket.once('disconnect', () => {
-      debug(`Controller disconnect "${event.channelName}" from ${event.userId}`);
+      debug(`Listener disconnect "${event.channelName}" from ${event.userId}`);
       socket.leave(socket.channel);
     });
   });
