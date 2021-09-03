@@ -69,3 +69,21 @@ channel.listChannel = (userId, channelsFilePath = DEFAULT_CHANNELS_FILE_PATH) =>
   const channelsList = require(channelsFilePath);
   return channelsList.filter((c) => c.createdBy === userId);
 };
+
+/**
+ * チャンネル名とユーザーIDが一致するチャンネルを削除する
+ *
+ * @param {string} userId - ユーザーID
+ * @param {string} channelId - チャンネルID
+ * @param {string} channelsFilePath - チャンネルファイルパス（指定しない場合は `/channels.json`）
+ */
+channel.removeChannel = (userId, channelId, channelsFilePath = DEFAULT_CHANNELS_FILE_PATH) => {
+  const channelsList = require(channelsFilePath);
+  for (let i = 0; i < channelsList.length; i++) {
+    if (channelsList[i].id === channelId && channelsList[i].createdBy === userId) {
+      channelsList.splice(i, 1);
+      break;
+    }
+  }
+  saveChannelsFile(channelsFilePath, channelsList);
+};

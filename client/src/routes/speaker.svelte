@@ -120,7 +120,7 @@ async function signIn() {
   const ret = new Promise((resolve) => {
     done = resolve;
   });
-  const socket = io(SERVER_URL);
+  const socket = io(SERVER_URL, { forceNew: true });
   const channelSlug = params.channelSlug;
   const fp = await FingerprintJS.load();
   const result = await fp.get();
@@ -130,6 +130,10 @@ async function signIn() {
     console.log('connected', socket.id);
     socket.emit('connectListener', { userId: visitorId, channelId: channelSlug });
     done();
+  });
+
+  socket.on("connect_error", (error) => {
+    console.error(error);
   });
 
   socket.on('disconnect', () => {
@@ -210,6 +214,7 @@ const onClickCanPlay = () => {
         <div class="icon" on:click="{onClickCanPlay}">
           <FontAwesomeIcon icon="play-circle" size="10x" />
         </div>
+        <!-- svelte-ignore a11y-label-has-associated-control -->
         <label>再生して開始</label>
       </div>
     {:else}

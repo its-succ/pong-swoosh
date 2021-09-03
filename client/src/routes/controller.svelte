@@ -101,7 +101,7 @@ async function signIn() {
   const ret = new Promise((resolve) => {
     done = resolve;
   });
-  socket = io(SERVER_URL);
+  socket = io(SERVER_URL, { forceNew: true });
   const channelSlug = params.channelSlug;
   const fp = await FingerprintJS.load();
   const result = await fp.get();
@@ -121,6 +121,10 @@ async function signIn() {
       },
     );
     done();
+  });
+
+  socket.on("connect_error", (error) => {
+    console.error(error);
   });
 
   socket.on('disconnect', () => {
@@ -170,7 +174,7 @@ let unit = 'px';
                 <!-- svelte-ignore a11y-media-has-caption -->
                 <audio src="{pong.url}" bind:this="{audios[pong.id]}"></audio>
                 <!-- svelte-ignore a11y-invalid-attribute -->
-                <a href="javascript:void(0)" on:click="{() => playAudio(pong.id)}"><FontAwesomeIcon icon="{faVolumeUp}"/><span class="text">視聴</span></a>
+                <a href="javascript:void(0)" on:click="{() => playAudio(pong.id)}"><FontAwesomeIcon icon="{faVolumeUp}"/><span class="text">試聴</span></a>
               </li>
             {/each}
           </ul>
