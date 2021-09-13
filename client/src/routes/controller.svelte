@@ -98,8 +98,10 @@ let audios = {};
 
 async function signIn() {
   let done;
-  const ret = new Promise((resolve) => {
+  let error;
+  const ret = new Promise((resolve, reject) => {
     done = resolve;
+    error = reject;
   });
   socket = io(SERVER_URL, { forceNew: true });
   const channelSlug = params.channelSlug;
@@ -114,17 +116,18 @@ async function signIn() {
       { userId: visitorId, channelId: channelSlug },
       (err, value) => {
         if (err) {
-          console.error(err);
+          error(err);
           return;
         }
         pongs = value;
+        done();
       },
     );
-    done();
   });
 
-  socket.on("connect_error", (error) => {
-    console.error(error);
+  socket.on("connect_error", (err) => {
+    console.error(err);
+    error(err);
   });
 
   socket.on('disconnect', () => {
@@ -182,9 +185,14 @@ let unit = 'px';
       </div>
     </mwc-top-app-bar>
   {:catch error}
-    <mwc-snackbar
-      labelText="接続できませんでした"
-      open
-      timeoutMs="-1"></mwc-snackbar>
+    <mwc-top-app-bar>
+      <h1 slot="title">pong-swoosh</h1>
+      <div>
+        <mwc-snackbar
+          labelText="接続できませんでした"
+          open
+          timeoutMs="-1"></mwc-snackbar>
+      </div>
+    </mwc-top-app-bar>
   {/await}
 </main>

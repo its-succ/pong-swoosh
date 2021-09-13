@@ -110,8 +110,10 @@ const pongs: any[] = [];
 
 async function signIn() {
   let done;
-  const ret = new Promise((resolve) => {
+  let error;
+  const ret = new Promise((resolve, reject) => {
     done = resolve;
+    error = reject;
   });
   const socket = io(SERVER_URL, { forceNew: true });
   const channelSlug = params.channelSlug;
@@ -121,12 +123,20 @@ async function signIn() {
 
   socket.on('connect', () => {
     console.log('connected', socket.id);
-    socket.emit('connectListener', { userId: visitorId, channelId: channelSlug });
-    done();
+    socket.emit('connectListener', { userId: visitorId, channelId: channelSlug },
+      (err) => {
+        if (err) {
+          error(err);
+          return;
+        }
+        done();
+      }
+    );
   });
 
-  socket.on("connect_error", (error) => {
-    console.error(error);
+  socket.on("connect_error", (err) => {
+    console.error(err);
+    error(err);
   });
 
   socket.on('disconnect', () => {
@@ -236,7 +246,9 @@ const onClickCanPlay = () => {
           </div>
         </div>
       {:catch error}
-        <mwc-snackbar labelText="接続できませんでした" open timeoutMs="-1"></mwc-snackbar>
+        <div>
+          <mwc-snackbar labelText="接続できませんでした" open timeoutMs="-1"></mwc-snackbar>
+        </div>
       {/await}
     {/if}
   </mwc-top-app-bar>

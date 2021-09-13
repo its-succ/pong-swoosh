@@ -105,11 +105,15 @@ io.on('connection', (socket) => {
      */
     socket.once('deleteChannel', async () => {
       debug(`deleteChannel "${event.channelName}" from ${event.userId}`);
-      closeChannel(io, event.userId, created);
-      const keys = await redis.keys(`${created}:*`);
-      const pipeline = redis.pipeline();
-      keys.forEach((key) => pipeline.del(key));
-      pipeline.exec();
+      try {
+        closeChannel(io, event.userId, created);
+        const keys = await redis.keys(`${created}:*`);
+        const pipeline = redis.pipeline();
+        keys.forEach((key) => pipeline.del(key));
+        pipeline.exec();
+      } catch (e) {
+        console.error('deleteChannel', e);
+      }
     });
 
     /**
@@ -145,29 +149,34 @@ io.on('connection', (socket) => {
     debug('joinChannel', joined);
     const err = !joined ? Error('Channel is not active') : undefined;
     callback(err, defaultPongs);
+    if (!joined) return;
 
     /**
      * 効果音イベント
      * @param {string} event.id - 効果音ID
      */
     socket.on('pongSwoosh', async (event) => {
-      debug('pongSwoosh', event, socket);
-      const count = await redis.incr(`${socket.channel}:${event.id}`);
-      debug('COUNT', `${socket.channel}:${event.id}`, count);
-      const pong = defaultPongs.find((p) => p.id === event.id);
-      debug('PONG', pong);
-      setTimeout(() => redis.decr(`${socket.channel}:${event.id}`), pong.duration * 1000);
-      const listeners = Array.from(io.of('/').in(socket.channel).sockets.values()).filter(
-        (s) => s.userrole === 'listener'
-      ).length;
-      debug('LISTENERS', listeners);
-      const volume = Math.sin((Math.PI * 90 * (count / listeners)) / 180) * 2;
-      const timestamp = DateTime.now().toFormat('yyyyMMddHHmmss');
-      if (!pong.buffer) {
-        const response = await fetch(pong.url);
-        pong.buffer = await response.arrayBuffer();
+      try {
+        debug('pongSwoosh', event, socket);
+        const count = await redis.incr(`${socket.channel}:${event.id}`);
+        debug('COUNT', `${socket.channel}:${event.id}`, count);
+        const pong = defaultPongs.find((p) => p.id === event.id);
+        debug('PONG', pong);
+        setTimeout(() => redis.decr(`${socket.channel}:${event.id}`), pong.duration * 1000);
+        const listeners = Array.from(io.of('/').in(socket.channel).sockets.values()).filter(
+          (s) => s.userrole === 'listener'
+        ).length;
+        debug('LISTENERS', listeners);
+        const volume = Math.sin((Math.PI * 90 * (count / listeners)) / 180) * 2;
+        const timestamp = DateTime.now().toFormat('yyyyMMddHHmmss');
+        if (!pong.buffer) {
+          const response = await fetch(pong.url);
+          pong.buffer = await response.arrayBuffer();
+        }
+        io.in(socket.channel).emit('pongSwoosh', event.id, pong.buffer, volume, timestamp);
+      } catch (e) {
+        console.error('pongSwoosh', e);
       }
-      io.in(socket.channel).emit('pongSwoosh', event.id, pong.buffer, volume, timestamp);
     });
 
     /**
