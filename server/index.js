@@ -82,6 +82,24 @@ const defaultPongs = [
 ];
 
 /**
+ * チャンネルを削除する
+ * @param {any} event - イベント
+ * @param {string} channelId - チャンネルID
+ */
+const deleteChannel = async (event, channelId) => {
+  debug(`deleteChannel "${event.channelName}" from ${event.userId}`);
+  try {
+    closeChannel(io, event.userId, channelId);
+    const keys = await redis.keys(`${channelId}:*`);
+    const pipeline = redis.pipeline();
+    keys.forEach((key) => pipeline.del(key));
+    pipeline.exec();
+  } catch (e) {
+    console.error('deleteChannel', e);
+  }
+};
+
+/**
  * クライアントの接続
  */
 io.on('connection', (socket) => {
@@ -89,11 +107,12 @@ io.on('connection', (socket) => {
    * チャンネル作成イベント
    * @param {string} event.userId - ユーザーID
    * @param {string} event.channelName - チャンネル名
+   * @param {string} event.channelId - チャンネルID。再接続する場合のみ指定される
    * @param {function} callback コールバック関数
    */
   socket.once('createChannel', (event, callback) => {
     debug(`createChannel "${event.channelName}" from ${event.userId}`);
-    const created = createChannel(socket, event.userId, event.channelName);
+    const created = createChannel(socket, event.userId, event.channelName, event.channelId);
 
     const err = !created ? Error('Channel can not created.') : undefined;
     callback(err, created);
@@ -104,16 +123,7 @@ io.on('connection', (socket) => {
      * 作成イベントを送ったソケットでのみリスニングする
      */
     socket.once('deleteChannel', async () => {
-      debug(`deleteChannel "${event.channelName}" from ${event.userId}`);
-      try {
-        closeChannel(io, event.userId, created);
-        const keys = await redis.keys(`${created}:*`);
-        const pipeline = redis.pipeline();
-        keys.forEach((key) => pipeline.del(key));
-        pipeline.exec();
-      } catch (e) {
-        console.error('deleteChannel', e);
-      }
+      await deleteChannel(event, created);
     });
 
     /**
@@ -121,7 +131,7 @@ io.on('connection', (socket) => {
      *
      * 削除と同様の動作を行う
      */
-    socket.once('disconnect', () => {
+    socket.on('disconnect', () => {
       debug(`disconnect "${event.channelName}" from ${event.userId}`);
     });
   });

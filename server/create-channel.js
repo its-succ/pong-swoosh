@@ -8,17 +8,21 @@ const { v4: uuidv4 } = require('uuid');
  * @param {object} socket - ソケット
  * @param {string} userId - ユーザーID（フィンガープリント）
  * @param {string} channelName -チャンネル名
- * @returns {string} 生成したチャンネルのID
+ * @param {string} channelId - チャンネルID。再接続する場合のみ指定される
+ * @returns {string} 生成したチャンネルのID（再接続のときは指定されたIDがそのまま戻る）
  * @returns {undefined} 生成に失敗したとき
  */
-module.exports = (socket, userId, channelName) => {
-  if (channel.getChannel(userId, channelName)) {
+module.exports = (socket, userId, channelName, channelId) => {
+  const exists = channel.getChannel(userId, channelName);
+  if (exists && !channelId) {
     console.error('#' + channelName + ' exists.');
     return undefined;
   }
-  const channelId = uuidv4();
+  channelId = channelId ? channelId : uuidv4();
 
-  channel.addChannel(userId, channelId, channelName);
+  if (!exists) {
+    channel.addChannel(userId, channelId, channelName);
+  }
 
   socket.join(channelId);
   socket.userrole = 'owner';

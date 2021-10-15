@@ -91,7 +91,7 @@ library.add(faGamepad, faVolumeUp);
 type Params = { channelSlug: string };
 export let params: Params;
 
-let socket;
+let socket: any;
 let pongs: any[];
 let buttons = {};
 let audios = {};
@@ -109,20 +109,21 @@ async function signIn() {
   const result = await fp.get();
   const visitorId = result.visitorId;
 
+  socket.emit(
+    'connectController',
+    { userId: visitorId, channelId: channelSlug },
+    (err, value) => {
+      if (err) {
+        error(err);
+        return;
+      }
+      pongs = value;
+      done();
+    },
+  );
+
   socket.on('connect', () => {
     console.log('connected', socket.id);
-    socket.emit(
-      'connectController',
-      { userId: visitorId, channelId: channelSlug },
-      (err, value) => {
-        if (err) {
-          error(err);
-          return;
-        }
-        pongs = value;
-        done();
-      },
-    );
   });
 
   socket.on("connect_error", (err) => {
@@ -132,6 +133,7 @@ async function signIn() {
 
   socket.on('disconnect', () => {
     console.log(socket.id); // undefined
+    (document.querySelector('#disconnectFromServer') as any).show();
   });
   return ret;
 }
@@ -182,6 +184,10 @@ let unit = 'px';
             {/each}
           </ul>
         {/if}
+        <mwc-snackbar
+          id="disconnectFromServer"
+          labelText="サーバーから切断されました"
+          timeoutMs="-1"></mwc-snackbar>
       </div>
     </mwc-top-app-bar>
   {:catch error}

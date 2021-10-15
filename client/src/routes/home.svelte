@@ -128,6 +128,7 @@ library.add(faUsers, faVolumeUp, faShareAlt, faCopy);
 let channelName = '';
 let entranceUrl: string | undefined;
 let socket;
+let channelId: string;
 
 const createChannel = async () => {
   const input = document.querySelector('#channelName') as any;
@@ -149,6 +150,27 @@ const createChannel = async () => {
     }
     const url = location.href;
     entranceUrl = `${url}#/entrance/${id}/${encodeURIComponent(channelName)}`;
+    channelId = id;
+  });
+
+  socket.on('connect', () => {
+    console.log('connected', socket.id);
+    if (entranceUrl) {
+      socket.emit('createChannel', { userId, channelName, channelId }, (err) => {
+        if (err) {
+          console.error('Error reConnect channel', err);
+        }
+        console.log('re connected to channel', channelName);
+      });
+    }
+  });
+
+  socket.on("connect_error", (err) => {
+    console.error(err);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('disconnect');
   });
 };
 
