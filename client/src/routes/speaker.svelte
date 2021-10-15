@@ -121,17 +121,18 @@ async function signIn() {
   const result = await fp.get();
   const visitorId = result.visitorId;
 
+  socket.emit('connectListener', { userId: visitorId, channelId: channelSlug },
+    (err) => {
+      if (err) {
+        error(err);
+        return;
+      }
+      done();
+    }
+  );
+
   socket.on('connect', () => {
     console.log('connected', socket.id);
-    socket.emit('connectListener', { userId: visitorId, channelId: channelSlug },
-      (err) => {
-        if (err) {
-          error(err);
-          return;
-        }
-        done();
-      }
-    );
   });
 
   socket.on("connect_error", (err) => {
@@ -141,6 +142,7 @@ async function signIn() {
 
   socket.on('disconnect', () => {
     console.log(socket.id); // undefined
+    (document.querySelector('#disconnectFromServer') as any).show();
   });
 
   socket.on(
@@ -244,6 +246,10 @@ const onClickCanPlay = () => {
               ></mwc-slider>
             </div>
           </div>
+          <mwc-snackbar
+            id="disconnectFromServer"
+            labelText="サーバーから切断されました"
+            timeoutMs="-1"></mwc-snackbar>
         </div>
       {:catch error}
         <div>
