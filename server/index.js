@@ -4,6 +4,7 @@
  */
 const debug = require('debug')('pong-swoosh');
 const fetch = require('node-fetch');
+const path = require('path');
 
 const port = process.env.PORT || 3000;
 const server = require('http').createServer();
@@ -30,53 +31,58 @@ const closeChannel = require('./close-channel');
 const listChannel = require('./list-channel');
 const joinChannel = require('./join-channel');
 
+const pongBaseUrl =
+  process.env.NODE_ENV === 'development'
+    ? 'http://localhost:5000/pongs'
+    : 'https://its-succ.github.io/pong-swoosh/pongs';
+
 const defaultPongs = [
   {
     id: 1,
     title: '拍手',
-    url: 'https://soundeffect-lab.info/sound/voice/mp3/people/people-stadium-applause1.mp3',
+    url: `${pongBaseUrl}/applause.mp3`,
     duration: 5,
   },
   {
     id: 2,
-    title: '歓声',
-    url: 'https://soundeffect-lab.info/sound/voice/mp3/people/people-stadium-cheer1.mp3',
-    duration: 4,
+    title: '納得',
+    url: `${pongBaseUrl}/understand.mp3`,
+    duration: 2,
   },
   {
     id: 3,
     title: '笑い',
-    url: 'https://soundeffect-lab.info/sound/voice/mp3/people/people-studio-laugh-large2.mp3',
+    url: `${pongBaseUrl}/laugh.mp3`,
     duration: 4,
   },
   {
     id: 4,
-    title: 'えー',
-    url: 'https://soundeffect-lab.info/sound/voice/mp3/line-girl1/line-girl1-ee1.mp3',
+    title: 'えー(驚き)',
+    url: `${pongBaseUrl}/surprise.mp3`,
     duration: 1,
   },
   {
     id: 5,
     title: 'おぉ...(感動)',
-    url: 'https://soundeffect-lab.info/sound/voice/mp3/line-girl1/line-girl1-oo1.mp3',
+    url: `${pongBaseUrl}/wonder.mp3`,
     duration: 2,
   },
   {
     id: 6,
     title: 'ドンドンパフパフ',
-    url: 'https://soundeffect-lab.info/sound/anime/mp3/dondonpafupafu1.mp3',
+    url: `${pongBaseUrl}/dondonpafupafu.mp3`,
     duration: 2,
   },
   {
     id: 7,
     title: 'ドラムロール',
-    url: 'https://soundeffect-lab.info/sound/anime/mp3/drum-roll1.mp3',
+    url: `${pongBaseUrl}/drum-roll.mp3`,
     duration: 4,
   },
   {
     id: 8,
     title: 'ドラ',
-    url: 'https://soundeffect-lab.info/sound/anime/mp3/ban1.mp3',
+    url: `${pongBaseUrl}/gong.mp3`,
     duration: 5,
   },
 ];
