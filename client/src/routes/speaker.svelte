@@ -82,6 +82,18 @@ mwc-slider {
   display: block;
   margin: auto 0;
 }
+.participants {
+  display: flex;
+  justify-content: flex-start;
+  padding: 0px 40px;
+}
+.participants .icon {
+  display: block;
+  margin: auto 0;
+}
+.participants p {
+  margin: 0 10px;
+}
 </style>
 
 <script lang="ts">
@@ -98,10 +110,11 @@ import {
   faVolumeMute,
   faPlayCircle,
   faHeadphones,
+  faUsers
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from 'fontawesome-svelte';
 
-library.add(faVolumeUp, faVolumeMute, faPlayCircle, faHeadphones);
+library.add(faVolumeUp, faVolumeMute, faPlayCircle, faHeadphones, faUsers);
 
 type Params = { channelSlug: string };
 export let params: Params;
@@ -171,6 +184,12 @@ async function signIn() {
     },
   );
 
+
+  socket.on('latestParticipants', (listners:number) => {
+    console.log(listners)
+    participants = listners
+  })
+
   return ret;
 }
 
@@ -183,6 +202,8 @@ let sliderVolume = 0.5;
 let isMuted = false;
 let volumeIcon = 'volume-up';
 let canPlay = false;
+// For participants
+let participants = 0;
 
 const onClickMute = () => {
   isMuted = !isMuted;
@@ -245,6 +266,10 @@ const onClickCanPlay = () => {
               <mwc-slider pin step="1" value="50" min="0" max="100" on:change="{onChangeVolume}"
               ></mwc-slider>
             </div>
+          </div>
+          <div class="participants">
+            <div class="icon"><FontAwesomeIcon icon="users" size="lg" /></div>
+            <p>現在の参加者数は {participants}人です。</p>
           </div>
           <mwc-snackbar
             id="disconnectFromServer"

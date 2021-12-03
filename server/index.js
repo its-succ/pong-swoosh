@@ -217,6 +217,11 @@ io.on('connection', (socket) => {
     const err = !joined ? Error('Channel is not active') : undefined;
     if (callback) callback(err);
 
+    const listeners = Array.from(io.of('/').in(socket.channel).sockets.values()).filter(
+      (s) => s.userrole === 'listener'
+    ).length;
+    io.in(socket.channel).emit('latestParticipants', listeners);
+
     /**
      * チャンネル切断イベント
      */
