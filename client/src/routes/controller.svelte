@@ -99,6 +99,7 @@ let audios = {};
 async function signIn() {
   let done;
   let error;
+  let disconnected = false;
   const ret = new Promise((resolve, reject) => {
     done = resolve;
     error = reject;
@@ -122,8 +123,21 @@ async function signIn() {
     },
   );
 
+  const reconnect = () => {
+    if (disconnected) {
+      socket.emit('connectController', { userId: visitorId, channelId: channelSlug }, (err) => {
+        if (err) {
+          setTimeout(reconnect, 3000);
+          return;
+        }
+        disconnected = false;
+        (document.querySelector('#disconnectFromServer') as any).close('サーバーとの接続が復帰しました');
+      });
+    }
+  };
   socket.on('connect', () => {
     console.log('connected', socket.id);
+    reconnect();
   });
 
   socket.on("connect_error", (err) => {
@@ -134,6 +148,7 @@ async function signIn() {
   socket.on('disconnect', () => {
     console.log(socket.id); // undefined
     (document.querySelector('#disconnectFromServer') as any).show();
+    disconnected = true;
   });
   return ret;
 }
