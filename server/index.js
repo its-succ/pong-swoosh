@@ -105,6 +105,14 @@ const deleteChannel = async (event, channelId) => {
   }
 };
 
+const emitLatestParticipants = (socket) => {
+  debug('emitLatestParticipants');
+  const listeners = Array.from(io.of('/').in(socket.channel).sockets.values()).filter(
+    (s) => s.userrole === 'listener'
+  ).length;
+  io.in(socket.channel).emit('latestParticipants', listeners);
+};
+
 /**
  * クライアントの接続
  */
@@ -217,10 +225,7 @@ io.on('connection', (socket) => {
     const err = !joined ? Error('Channel is not active') : undefined;
     if (callback) callback(err);
 
-    const listeners = Array.from(io.of('/').in(socket.channel).sockets.values()).filter(
-      (s) => s.userrole === 'listener'
-    ).length;
-    io.in(socket.channel).emit('latestParticipants', listeners);
+    emitLatestParticipants(socket);
 
     /**
      * チャンネル切断イベント
@@ -228,6 +233,7 @@ io.on('connection', (socket) => {
     socket.once('disconnect', () => {
       debug(`Listener disconnect "${event.channelName}" from ${event.userId}`);
       socket.leave(socket.channel);
+      emitLatestParticipants(socket);
     });
   });
 });
