@@ -7,11 +7,17 @@
 main {
   padding: 0;
   margin: 0 auto;
+  width: 100%;
+  height: 100%;
 }
 
 mwc-top-app-bar {
   --mdc-theme-primary: #00bcd4;
   --mdc-theme-on-primary: white;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 [slot='title'] {
@@ -102,6 +108,14 @@ form > mwc-button {
   justify-content: space-between;
 }
 
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  flex-flow: column;
+}
+
 @media (min-width: 640px) {
   main {
     max-width: none;
@@ -115,6 +129,7 @@ import '@material/mwc-textfield';
 import '@material/mwc-button';
 import '@material/mwc-snackbar';
 import { io } from 'socket.io-client';
+import { Circle3 } from 'svelte-loading-spinners';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { SERVER_URL } from '../pong-swoosh';
 import { library } from '@fortawesome/fontawesome-svg-core';
@@ -129,8 +144,13 @@ let channelName = '';
 let entranceUrl: string | undefined;
 let socket;
 let channelId: string;
+// For Circle3
+let loading = false;
+let size = '60';
+let unit = 'px';
 
 const createChannel = async () => {
+  loading = true;
   const input = document.querySelector('#channelName') as any;
   channelName = input.value;
   if (channelName.trim().length === 0) {
@@ -143,6 +163,7 @@ const createChannel = async () => {
   const userId = result.visitorId;
 
   socket.emit('createChannel', { userId, channelName }, (err, id) => {
+    loading = false;
     if (err) {
       const snackbar = document.querySelector('#createError') as any;
       snackbar.show();
@@ -226,6 +247,16 @@ const unload = () => {
           id="copiedToClipbord"
           labelText="クリップボードにURLをコピーしました"
           timeoutMs="4000"></mwc-snackbar>
+      {:else if loading}
+        <div class="loading">
+          <Circle3
+            size="{size}"
+            unit="{unit}"
+            ballTopLeft="#FF3E00"
+            ballTopRight="#F8B334"
+            ballBottomLeft="#40B3FF"
+            ballBottomRight="#676778" />
+        </div>
       {:else}
         <form>
           <mwc-textfield
