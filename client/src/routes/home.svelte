@@ -170,7 +170,7 @@ const createChannel = async () => {
       return;
     }
     const url = location.href;
-    entranceUrl = `${url}#/entrance/${id}/${encodeURIComponent(channelName)}`;
+    entranceUrl = `${url}#/pong-swoosh/${id}/${encodeURIComponent(channelName)}`;
     channelId = id;
   });
 
