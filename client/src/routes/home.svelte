@@ -85,17 +85,17 @@ form > mwc-button {
   color: white;
 }
 
-.entranceUrl {
+.pongSwooshUrl {
   margin: 1rem;
   padding: 20px;
   box-shadow: 2px 2px 8px gray;
 }
 
-.entranceUrl > div {
+.pongSwooshUrl > div {
   cursor: pointer;
 }
 
-.entranceUrl * {
+.pongSwooshUrl * {
   display: inline-block;
 }
 
@@ -141,7 +141,7 @@ import copy from 'copy-to-clipboard';
 library.add(faUsers, faVolumeUp, faShareAlt, faCopy);
 
 let channelName = '';
-let entranceUrl: string | undefined;
+let pongSwooshUrl: string | undefined;
 let socket;
 let channelId: string;
 // For Circle3
@@ -170,13 +170,13 @@ const createChannel = async () => {
       return;
     }
     const url = location.href;
-    entranceUrl = `${url}#/pong-swoosh/${id}/${encodeURIComponent(channelName)}`;
+    pongSwooshUrl = `${url}#/pong-swoosh/${id}/${encodeURIComponent(channelName)}`;
     channelId = id;
   });
 
   socket.on('connect', () => {
     console.log('connected', socket.id);
-    if (entranceUrl) {
+    if (pongSwooshUrl) {
       socket.emit('createChannel', { userId, channelName, channelId }, (err) => {
         if (err) {
           console.error('Error reConnect channel', err);
@@ -196,7 +196,7 @@ const createChannel = async () => {
 };
 
 const beforeUnload = (event) => {
-  if (entranceUrl) {
+  if (pongSwooshUrl) {
     event.preventDefault();
     event.returnValue = `このページを離れると ${channelName} が終了します。よろしいですか？`;
   }
@@ -204,7 +204,7 @@ const beforeUnload = (event) => {
 };
 
 const copyToClipbord = () => {
-  copy(entranceUrl);
+  copy(pongSwooshUrl);
   const snackbar = document.querySelector('#copiedToClipbord') as any;
   snackbar.show();
 };
@@ -212,11 +212,11 @@ const copyToClipbord = () => {
 const closeChannel = () => {
   socket.emit('deleteChannel');
   socket.close();
-  entranceUrl = undefined;
+  pongSwooshUrl = undefined;
 };
 
 const unload = () => {
-  if (entranceUrl) {
+  if (pongSwooshUrl) {
     closeChannel();
   }
 };
@@ -229,15 +229,15 @@ const unload = () => {
       <div class="subtitle">リモートポン出しWebシステム - Pong (っ’-‘)╮ =͟͟͞͞ 🎉</div>
     </div>
     <div>
-      {#if entranceUrl}
+      {#if pongSwooshUrl}
         <div class="success">
           <strong
             >チャンネル「{channelName}」を作成しました。以下のURLを参加者に共有してください。</strong>
         </div>
-        <div class="entranceUrl">
+        <div class="pongSwooshUrl">
           <div on:click="{copyToClipbord}"><FontAwesomeIcon icon="{faCopy}" size="2x" />&nbsp;</div>
           <!-- svelte-ignore a11y-missing-content -->
-          <a href="{entranceUrl}">{entranceUrl}</a>
+          <a href="{pongSwooshUrl}">{pongSwooshUrl}</a>
         </div>
         <div class="warning">
           <strong>このページを離れると {channelName} が終了します。ご注意ください。</strong>
