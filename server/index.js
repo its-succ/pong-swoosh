@@ -41,48 +41,56 @@ const defaultPongs = [
     id: 1,
     title: '拍手',
     url: `${pongBaseUrl}/applause.mp3`,
+    icon: `${pongBaseUrl}/applause.svg`,
     duration: 5,
   },
   {
     id: 2,
     title: '納得',
     url: `${pongBaseUrl}/understand.mp3`,
+    icon: `${pongBaseUrl}/understand.svg`,
     duration: 2,
   },
   {
     id: 3,
     title: '笑い',
     url: `${pongBaseUrl}/laugh.mp3`,
+    icon: `${pongBaseUrl}/laugh.svg`,
     duration: 4,
   },
   {
     id: 4,
     title: 'えー(驚き)',
     url: `${pongBaseUrl}/surprise.mp3`,
+    icon: `${pongBaseUrl}/surprise.svg`,
     duration: 1,
   },
   {
     id: 5,
     title: 'おぉ...(感動)',
     url: `${pongBaseUrl}/wonder.mp3`,
+    icon: `${pongBaseUrl}/wonder.svg`,
     duration: 2,
   },
   {
     id: 6,
     title: 'ドンドンパフパフ',
     url: `${pongBaseUrl}/dondonpafupafu.mp3`,
+    icon: `${pongBaseUrl}/dondonpafupafu.png`,
     duration: 2,
   },
   {
     id: 7,
     title: 'ドラムロール',
     url: `${pongBaseUrl}/drum-roll.mp3`,
+    icon: `${pongBaseUrl}/drum-roll.svg`,
     duration: 4,
   },
   {
     id: 8,
     title: 'ドラ',
     url: `${pongBaseUrl}/gong.mp3`,
+    icon: `${pongBaseUrl}/gong.svg`,
     duration: 5,
   },
 ];
@@ -176,40 +184,40 @@ io.on('connection', (socket) => {
     if (!joined) return;
 
     /**
-     * 効果音イベント
-     * @param {string} event.id - 効果音ID
-     */
-    socket.on('pongSwoosh', async (event) => {
-      try {
-        debug('pongSwoosh', event, socket);
-        const count = await redis.incr(`${socket.channel}:${event.id}`);
-        debug('COUNT', `${socket.channel}:${event.id}`, count);
-        const pong = defaultPongs.find((p) => p.id === event.id);
-        debug('PONG', pong);
-        setTimeout(() => redis.decr(`${socket.channel}:${event.id}`), pong.duration * 1000);
-        const listeners = Array.from(io.of('/').in(socket.channel).sockets.values()).filter(
-          (s) => s.userrole === 'listener'
-        ).length;
-        debug('LISTENERS', listeners);
-        const volume = Math.sin((Math.PI * 90 * (count / listeners)) / 180);
-        const timestamp = DateTime.now().toFormat('yyyyMMddHHmmss');
-        if (!pong.buffer) {
-          const response = await fetch(pong.url);
-          pong.buffer = await response.arrayBuffer();
-        }
-        io.in(socket.channel).emit('pongSwoosh', event.id, pong.buffer, volume, timestamp);
-      } catch (e) {
-        console.error('pongSwoosh', e);
-      }
-    });
-
-    /**
      * チャンネル切断イベント
      */
     socket.once('disconnect', () => {
       debug(`Controller disconnect "${event.channelName}" from ${event.userId}`);
       socket.leave(socket.channel);
     });
+  });
+
+  /**
+   * 効果音イベント
+   * @param {string} event.id - 効果音ID
+   */
+  socket.on('pongSwoosh', async (event) => {
+    try {
+      debug('pongSwoosh', event, socket);
+      const count = await redis.incr(`${socket.channel}:${event.id}`);
+      debug('COUNT', `${socket.channel}:${event.id}`, count);
+      const pong = defaultPongs.find((p) => p.id === event.id);
+      debug('PONG', pong);
+      setTimeout(() => redis.decr(`${socket.channel}:${event.id}`), pong.duration * 1000);
+      const listeners = Array.from(io.of('/').in(socket.channel).sockets.values()).filter(
+        (s) => s.userrole === 'listener'
+      ).length;
+      debug('LISTENERS', listeners);
+      const volume = Math.sin((Math.PI * 90 * (count / listeners)) / 180);
+      const timestamp = DateTime.now().toFormat('yyyyMMddHHmmss');
+      if (!pong.buffer) {
+        const response = await fetch(pong.url);
+        pong.buffer = await response.arrayBuffer();
+      }
+      io.in(socket.channel).emit('pongSwoosh', event.id, pong.buffer, volume, timestamp);
+    } catch (e) {
+      console.error('pongSwoosh', e);
+    }
   });
 
   /**
@@ -223,7 +231,7 @@ io.on('connection', (socket) => {
     const joined = joinChannel(io, socket, 'listener', event.userId, event.channelId);
     debug('joinChannel', joined);
     const err = !joined ? Error('Channel is not active') : undefined;
-    if (callback) callback(err);
+    if (callback) callback(err, defaultPongs);
 
     emitLatestParticipants(socket);
 
