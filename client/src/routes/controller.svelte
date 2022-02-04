@@ -17,10 +17,6 @@ main {
   height: 100%;
 }
 
-audio {
-  display: none;
-}
-
 mwc-top-app-bar {
   --mdc-theme-primary: #00bcd4;
   --mdc-theme-on-primary: white;
@@ -52,31 +48,39 @@ ul, li {
   list-style: none;
 }
 
+ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+}
 li {
   padding: 10px 0;
-  display: flex;
   align-items: center;
 }
-
-mwc-button {
-  width: 12rem;
-  --mdc-theme-primary: black;
-  --mdc-theme-on-primary: white;
+button {
+  height: 5rem;
+  width: 10rem;
+  position: relative;
+  cursor: pointer;
+  margin: 1rem;
 }
-
-ul > li > a {
-  margin-left: 20px;
-  color: #00bcd4;
+button img {
+  padding-left: 6px;
+  width: 2rem;
+  float: left;
 }
-a > .text {
-  margin-left: 10px;
+button label {
+  font-weight: bold;
+  font-size: 0.8rem;
+  line-height: 2rem;
 }
 
 </style>
 
 <script lang="ts">
 import '@material/mwc-top-app-bar';
-import '@material/mwc-button';
 import '@material/mwc-snackbar';
 import { io } from 'socket.io-client';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
@@ -94,7 +98,6 @@ export let params: Params;
 let socket: any;
 let pongs: any[];
 let buttons = {};
-let audios = {};
 
 async function signIn() {
   let done;
@@ -159,10 +162,6 @@ const pongSwoosh = (id) => {
   socket.emit('pongSwoosh', { id });
 };
 
-const playAudio = (id) => {
-  audios[id].play();
-};
-
 // For Circle3
 let size = '60';
 let unit = 'px';
@@ -190,11 +189,11 @@ let unit = 'px';
           <ul>
             {#each pongs as pong}
               <li>
-                <mwc-button icon="send" label="{pong.title}" raised on:click="{() => pongSwoosh(pong.id)}" bind:this="{buttons[pong.id]}" outlined></mwc-button>
-                <!-- svelte-ignore a11y-media-has-caption -->
-                <audio src="{pong.url}" bind:this="{audios[pong.id]}"></audio>
-                <!-- svelte-ignore a11y-invalid-attribute -->
-                <a href="javascript:void(0)" on:click="{() => playAudio(pong.id)}"><FontAwesomeIcon icon="{faVolumeUp}"/><span class="text">試聴</span></a>
+                <button on:click="{() => pongSwoosh(pong.id)}" bind:this="{buttons[pong.id]}">
+                  <img src="{pong.icon}" alt="icon">
+                  <!-- svelte-ignore a11y-label-has-associated-control -->
+                  <label>{pong.title}</label>
+                </button>
               </li>
             {/each}
           </ul>
