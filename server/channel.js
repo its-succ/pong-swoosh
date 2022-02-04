@@ -13,13 +13,12 @@ const DEFAULT_CHANNELS_FILE_PATH = './channels.json';
 module.exports = channel;
 
 const saveChannelsFile = (channelsFilePath, channels) => {
-  fs.writeFile(channelsFilePath, JSON.stringify(channels, null, 4), (err) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log('Channels list updated.');
-    }
-  });
+  try {
+    fs.writeFileSync(channelsFilePath, JSON.stringify(channels, null, 4));
+    console.log('Channels list updated.');
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 /**
