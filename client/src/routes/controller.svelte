@@ -77,6 +77,16 @@ button label {
   line-height: 2rem;
 }
 
+@media screen and (max-width: 380px) {
+  button {
+    height: 4rem;
+    width: 10rem;
+    position: relative;
+    cursor: pointer;
+    margin: 0.25rem;
+  }
+}
+
 </style>
 
 <script lang="ts">
