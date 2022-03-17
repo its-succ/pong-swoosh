@@ -210,11 +210,7 @@ io.on('connection', (socket) => {
       debug('LISTENERS', listeners);
       const volume = Math.sin((Math.PI * 90 * (count / listeners)) / 180);
       const timestamp = DateTime.now().toFormat('yyyyMMddHHmmss');
-      if (!pong.buffer) {
-        const response = await fetch(pong.url);
-        pong.buffer = await response.arrayBuffer();
-      }
-      io.in(socket.channel).emit('pongSwoosh', event.id, pong.buffer, volume, timestamp);
+      io.in(socket.channel).emit('pongSwoosh', event.id, volume, timestamp);
     } catch (e) {
       console.error('pongSwoosh', e);
     }

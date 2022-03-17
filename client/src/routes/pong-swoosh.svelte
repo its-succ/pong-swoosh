@@ -231,7 +231,26 @@
           return;
         }
         pongActions = value;
-        done();
+        const pongLoading = [];
+        pongActions.forEach((pong) => {
+          pongLoading.push(fetch(pong.url));
+        });
+        Promise.all(pongLoading).then((responses) => {
+          const pongBuffers = [];
+          responses.forEach((response) => {
+            pongBuffers.push(response.arrayBuffer());
+          });
+          Promise.all(pongBuffers).then((buffers) => {
+            buffers.forEach((buffer, index) => {
+              pongActions[index].buffer = buffer;
+            })
+            done();
+          }).catch((e) => {
+            error(e);
+          });
+        }).catch((e) => {
+          error(e);
+        });
       }
     );
 
@@ -265,7 +284,7 @@
 
     socket.on(
       'pongSwoosh',
-      async (pongId: string, buffer: ArrayBuffer, volume: number, timestamp: string) => {
+      async (pongId: string, volume: number, timestamp: string) => {
         console.log(JSON.stringify({ pongId, volume, timestamp }));
         if (pongSounds[pongId] && pongSounds[pongId].timestamp === timestamp) {
           pongSounds[pongId].volume = volume;
@@ -273,7 +292,7 @@
         } else {
           window.AudioContext = window.AudioContext || (window as any).webkitAudioContext;
           const ctx = new AudioContext();
-          const audioBuffer = await ctx.decodeAudioData(buffer);
+          const audioBuffer = await ctx.decodeAudioData(pongActions.find((action) => action.id == pongId).buffer.slice(0));
           const src = ctx.createBufferSource();
           src.buffer = audioBuffer;
           pongSounds[pongId] = {
