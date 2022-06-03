@@ -3,8 +3,6 @@
  *
  */
 const debug = require('debug')('pong-swoosh');
-const fetch = require('node-fetch');
-const path = require('path');
 
 const port = process.env.PORT || 3000;
 const server = require('http').createServer();
@@ -31,10 +29,9 @@ const closeChannel = require('./close-channel');
 const listChannel = require('./list-channel');
 const joinChannel = require('./join-channel');
 
-const pongBaseUrl =
-  process.env.NODE_ENV === 'development'
-    ? 'http://localhost:5000/pongs'
-    : 'https://its-succ.github.io/pong-swoosh/pongs';
+const pongBaseUrl = ['development', 'test'].includes(process.env.NODE_ENV)
+  ? 'http://localhost:5000/pongs'
+  : 'https://its-succ.github.io/pong-swoosh/pongs';
 
 const defaultPongs = [
   {
@@ -144,8 +141,9 @@ io.on('connection', (socket) => {
      *
      * 作成イベントを送ったソケットでのみリスニングする
      */
-    socket.once('deleteChannel', async () => {
+    socket.once('deleteChannel', async (callback) => {
       await deleteChannel(event, created);
+      if (callback) callback();
     });
 
     /**
