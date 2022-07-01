@@ -99,6 +99,40 @@ form > mwc-button {
   display: inline-block;
 }
 
+/* TODO: ボタン表示のスタイルを修正する。
+   それかコンポーネント化して利用する。(pong-swoosh.svelteでも利用する
+ */
+ul, li {
+  list-style: none;
+}
+ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin: 0;
+  padding: 0;
+}
+li {
+  padding: 10px 0;
+  align-items: center;
+}
+button {
+  height: 5rem;
+  width: 10rem;
+  position: relative;
+  padding: 2rem;
+}
+button img {
+  padding-left: 6px;
+  width: 2rem;
+  float: left;
+}
+button label {
+  font-weight: bold;
+  font-size: 0.8rem;
+  line-height: 2rem;
+}
+
 .warning {
   background-color: lightyellow;
   margin: 5rem 50px 0 50px;
@@ -246,7 +280,8 @@ const unload = () => {
           <!-- svelte-ignore a11y-missing-content -->
           <a href="{pongSwooshUrl}">{pongSwooshUrl}</a>
         </div>
-        <div>
+        {#if defaultButtons}
+        <div class="defaultButtons">
           <ul>
             {#each defaultButtons as button}
               <li>
@@ -255,13 +290,11 @@ const unload = () => {
                   <!-- svelte-ignore a11y-label-has-associated-control -->
                   <label>{button.title}</label>
                 </button>
-                <!-- svelte-ignore a11y-media-has-caption -->
-                <audio src="{button.url}"></audio>
-                <!-- svelte-ignore a11y-invalid-attribute -->
               </li>
             {/each}
           </ul>
         </div>
+        {/if}
         <div class="warning">
           <strong>このページを離れると {channelName} が終了します。ご注意ください。</strong>
           <mwc-button label="チャンネル終了" raised on:click="{closeChannel}"></mwc-button>
