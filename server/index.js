@@ -33,13 +33,14 @@ const pongBaseUrl = ['development', 'test'].includes(process.env.NODE_ENV)
   ? 'http://localhost:5000/pongs'
   : 'https://its-succ.github.io/pong-swoosh/pongs';
 
-const defaultPongs = [
+const allPongs = [
   {
     id: 1,
     title: '拍手',
     url: `${pongBaseUrl}/applause.mp3`,
     icon: `${pongBaseUrl}/applause.svg`,
     duration: 5,
+    default: true,
   },
   {
     id: 2,
@@ -47,6 +48,7 @@ const defaultPongs = [
     url: `${pongBaseUrl}/understand.mp3`,
     icon: `${pongBaseUrl}/understand.svg`,
     duration: 2,
+    default: true,
   },
   {
     id: 3,
@@ -54,6 +56,7 @@ const defaultPongs = [
     url: `${pongBaseUrl}/laugh.mp3`,
     icon: `${pongBaseUrl}/laugh.svg`,
     duration: 4,
+    default: true,
   },
   {
     id: 4,
@@ -61,6 +64,7 @@ const defaultPongs = [
     url: `${pongBaseUrl}/surprise.mp3`,
     icon: `${pongBaseUrl}/surprise.svg`,
     duration: 1,
+    default: true,
   },
   {
     id: 5,
@@ -68,6 +72,7 @@ const defaultPongs = [
     url: `${pongBaseUrl}/wonder.mp3`,
     icon: `${pongBaseUrl}/wonder.svg`,
     duration: 2,
+    default: true,
   },
   {
     id: 6,
@@ -75,6 +80,7 @@ const defaultPongs = [
     url: `${pongBaseUrl}/dondonpafupafu.mp3`,
     icon: `${pongBaseUrl}/dondonpafupafu.png`,
     duration: 2,
+    default: true,
   },
   {
     id: 7,
@@ -82,6 +88,7 @@ const defaultPongs = [
     url: `${pongBaseUrl}/drum-roll.mp3`,
     icon: `${pongBaseUrl}/drum-roll.svg`,
     duration: 4,
+    default: true,
   },
   {
     id: 8,
@@ -89,6 +96,7 @@ const defaultPongs = [
     url: `${pongBaseUrl}/gong.mp3`,
     icon: `${pongBaseUrl}/gong.svg`,
     duration: 5,
+    default: true,
   },
 ];
 
@@ -146,9 +154,12 @@ io.on('connection', (socket) => {
       if (callback) callback();
     });
 
-    // channel createしたひとだけだから、createChannelの配下で
-    // socket.onをする。socket.onは常時呼び出し可能なメソッド。
-    // APIで作成した内容をcallbackで返す。
+    /**
+     * 利用可能なボタン一覧取得イベント
+     */
+    socket.on('allButtons', async (callback) => {
+      callback(allPongs);
+    });
 
     /**
      * チャンネル切断イベント
@@ -182,7 +193,7 @@ io.on('connection', (socket) => {
     const joined = joinChannel(io, socket, 'controller', event.userId, event.channelId);
     debug('joinChannel', joined);
     const err = !joined ? Error('Channel is not active') : undefined;
-    callback(err, defaultPongs);
+    callback(err, allPongs);
     if (!joined) return;
 
     /**
@@ -203,7 +214,7 @@ io.on('connection', (socket) => {
       debug('pongSwoosh', event, socket);
       const count = await redis.incr(`${socket.channel}:${event.id}`);
       debug('COUNT', `${socket.channel}:${event.id}`, count);
-      const pong = defaultPongs.find((p) => p.id === event.id);
+      const pong = allPongs.find((p) => p.id === event.id);
       debug('PONG', pong);
       setTimeout(() => redis.decr(`${socket.channel}:${event.id}`), pong.duration * 1000);
       const listeners = Array.from(io.of('/').in(socket.channel).sockets.values()).filter(
@@ -229,7 +240,7 @@ io.on('connection', (socket) => {
     const joined = joinChannel(io, socket, 'listener', event.userId, event.channelId);
     debug('joinChannel', joined);
     const err = !joined ? Error('Channel is not active') : undefined;
-    if (callback) callback(err, defaultPongs);
+    if (callback) callback(err, allPongs);
 
     emitLatestParticipants(socket);
 
