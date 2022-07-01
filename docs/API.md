@@ -215,6 +215,59 @@ pongSwoosh
   socket.emit('pongSwoosh', { id });
 ```
 
+### 効果音受信
+
+リスナーで再生する効果音を受信する
+
+#### イベント名
+
+pongSwoosh
+
+#### ペイロード
+
+| 項目名 | 内容         |
+|-------|-------------|
+| pongId | 効果音ID。効果音セットで戻る id 値 |
+| volume | ボリューム |
+| timestamp | タイムスタンプ |
+
+volume は [WebAudio API の GainNode.gain](https://developer.mozilla.org/en-US/docs/Web/API/GainNode/gain) の value に指定できる値範囲となっている。
+
+タイムスタンプは現在再生中のものと重複するものを除外する場合などに利用できる。
+
+#### コールバック関数
+
+なし
+
+#### コード例
+
+```JavaScript
+    socket.on(
+      'pongSwoosh',
+      async (pongId: string, volume: number, timestamp: string) => {
+        if (pongSounds[pongId] && pongSounds[pongId].timestamp === timestamp) {
+          pongSounds[pongId].volume = volume;
+          pongSounds[pongId].gainNode.gain.value = isMuted ? 0 : volume * sliderVolume;
+        } else {
+          window.AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+          const ctx = new AudioContext();
+          const audioBuffer = await ctx.decodeAudioData(pongActions.find((action) => action.id == pongId).buffer.slice(0));
+          const src = ctx.createBufferSource();
+          src.buffer = audioBuffer;
+          pongSounds[pongId] = {
+            gainNode: ctx.createGain(),
+            timestamp,
+          };
+          src.connect(pongSounds[pongId].gainNode);
+          pongSounds[pongId].gainNode.connect(ctx.destination);
+          pongSounds[pongId].volume = volume;
+          pongSounds[pongId].gainNode.gain.value = isMuted ? 0 : volume * sliderVolume;
+          src.start();
+        }
+      },
+    );
+```
+
 ### 参加人数通知
 
 リスナー接続したクライアントへ、参加人数が変更になるたび通知される
