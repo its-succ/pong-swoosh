@@ -172,6 +172,9 @@ const createChannel = async () => {
     const url = location.href;
     pongSwooshUrl = `${url}#/pong-swoosh/${id}/${encodeURIComponent(channelName)}`;
     channelId = id;
+    socket.emit('allButtons', (allButtons) => {
+      console.log('allButtons', JSON.stringify(allButtons))
+    })
   });
 
   socket.on('connect', () => {
