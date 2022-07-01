@@ -146,6 +146,10 @@ io.on('connection', (socket) => {
       if (callback) callback();
     });
 
+    // channel createしたひとだけだから、createChannelの配下で
+    // socket.onをする。socket.onは常時呼び出し可能なメソッド。
+    // APIで作成した内容をcallbackで返す。
+
     /**
      * チャンネル切断イベント
      *
