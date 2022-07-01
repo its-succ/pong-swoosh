@@ -148,6 +148,8 @@ let channelId: string;
 let loading = false;
 let size = '60';
 let unit = 'px';
+let allButtons: any[];
+let defaultButtons: any[]
 
 const createChannel = async () => {
   loading = true;
@@ -172,8 +174,9 @@ const createChannel = async () => {
     const url = location.href;
     pongSwooshUrl = `${url}#/pong-swoosh/${id}/${encodeURIComponent(channelName)}`;
     channelId = id;
-    socket.emit('allButtons', (allButtons) => {
-      console.log('allButtons', JSON.stringify(allButtons))
+    socket.emit('allButtons', (allPongs) => {
+      allButtons = allPongs;
+      defaultButtons = allButtons.filter(button => button.default)
     })
   });
 
@@ -223,6 +226,7 @@ const unload = () => {
     closeChannel();
   }
 };
+
 </script>
 
 <main>
@@ -241,6 +245,22 @@ const unload = () => {
           <div on:click="{copyToClipbord}"><FontAwesomeIcon icon="{faCopy}" size="2x" />&nbsp;</div>
           <!-- svelte-ignore a11y-missing-content -->
           <a href="{pongSwooshUrl}">{pongSwooshUrl}</a>
+        </div>
+        <div>
+          <ul>
+            {#each defaultButtons as button}
+              <li>
+                <button>
+                  <img src="{button.icon}" alt="icon">
+                  <!-- svelte-ignore a11y-label-has-associated-control -->
+                  <label>{button.title}</label>
+                </button>
+                <!-- svelte-ignore a11y-media-has-caption -->
+                <audio src="{button.url}"></audio>
+                <!-- svelte-ignore a11y-invalid-attribute -->
+              </li>
+            {/each}
+          </ul>
         </div>
         <div class="warning">
           <strong>このページを離れると {channelName} が終了します。ご注意ください。</strong>
