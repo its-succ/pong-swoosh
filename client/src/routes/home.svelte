@@ -102,6 +102,10 @@ form > mwc-button {
 /* TODO: ボタン表示のスタイルを修正する。
    それかコンポーネント化して利用する。(pong-swoosh.svelteでも利用する
  */
+.default-buttons {
+  padding: 2rem;
+}
+
 ul, li {
   list-style: none;
 }
@@ -120,7 +124,7 @@ button {
   height: 5rem;
   width: 10rem;
   position: relative;
-  padding: 2rem;
+  margin: 1rem;
 }
 button img {
   padding-left: 6px;
@@ -281,7 +285,7 @@ const unload = () => {
           <a href="{pongSwooshUrl}">{pongSwooshUrl}</a>
         </div>
         {#if defaultButtons}
-        <div class="defaultButtons">
+        <div class="default-buttons">
           <ul>
             {#each defaultButtons as button}
               <li>
