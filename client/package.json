@@ -8,9 +8,11 @@
     "validate": "svelte-check",
     "lint": "eslint . --cache",
     "lint:fix": "npm run lint -- --fix",
-    "prettify": "prettier --write \"**/*.{css,html,js,ts,json,md,yaml,yml,svelte}\""
+    "prettify": "prettier --write \"**/*.{css,html,js,ts,json,md,yaml,yml,svelte}\"",
+    "voice2mp3": "ts-node voice-text-2-mp3.ts"
   },
   "devDependencies": {
+    "@google-cloud/text-to-speech": "^4.0.4",
     "@rollup/plugin-commonjs": "^17.0.0",
     "@rollup/plugin-node-resolve": "^11.0.0",
     "@rollup/plugin-typescript": "^6.0.0",
@@ -37,6 +39,7 @@
     "svelte-check": "^1.0.0",
     "svelte-preprocess": "^4.0.0",
     "svelte-spa-router": "^3.1.0",
+    "ts-node": "^10.9.1",
     "tslib": "^2.0.0",
     "typescript": "^3.9.3"
   },
