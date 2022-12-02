@@ -1,30 +1,5 @@
 [
     {
         "name": "test"
-    },
-    {
-        "name": "test4",
-        "id": "87a74ef4-8ef0-4f98-b2d9-5b5d09caecb2",
-        "createdBy": "3a9f074c71aa1763978989ae0095bc5a"
-    },
-    {
-        "name": "test5",
-        "id": "d50e83cd-f140-46c1-8a79-b70607393583",
-        "createdBy": "3a9f074c71aa1763978989ae0095bc5a"
-    },
-    {
-        "name": "test6",
-        "id": "45c19faa-f19b-4db4-83ee-0bbeefd4b12b",
-        "createdBy": "d612c2dbb5e095049dcece4cf5181070"
-    },
-    {
-        "name": "test666",
-        "id": "3e200efd-8606-4754-98ba-80e0aa37e7d4",
-        "createdBy": "d612c2dbb5e095049dcece4cf5181070"
-    },
-    {
-        "name": "test777",
-        "id": "bd477501-f56e-4e4d-ac01-3f958bcdb4a7",
-        "createdBy": "3a9f074c71aa1763978989ae0095bc5a"
     }
 ]
