@@ -162,11 +162,9 @@
   export let params: Params;
 
   let socket: Socket;
-  let buttons = {};
   const pongSounds: any[] = [];
   let pongActions: any[];
   let controllerUrl: string | undefined;
-  let audios = {};
 
   async function signIn() {
     let done;
