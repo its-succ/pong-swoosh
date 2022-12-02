@@ -98,6 +98,22 @@ const allPongs = [
     duration: 5,
     default: true,
   },
+  {
+    id: 9,
+    title: 'へぇー',
+    url: `${pongBaseUrl}/hee.mp3`,
+    icon: `${pongBaseUrl}/hee.svg`,
+    duration: 2,
+    default: false,
+  },
+  {
+    id: 10,
+    title: '見えてます',
+    url: `${pongBaseUrl}/mietemasu.mp3`,
+    icon: `${pongBaseUrl}/mietemasu.svg`,
+    duration: 2,
+    default: false,
+  },
 ];
 
 /**
