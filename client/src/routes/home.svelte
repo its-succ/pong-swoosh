@@ -227,7 +227,6 @@ const unload = () => {
     closeChannel();
   }
 };
-
 </script>
 
 <main>

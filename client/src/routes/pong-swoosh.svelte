@@ -34,18 +34,6 @@
     padding: 1em 0;
   }
 
-  h2 {
-    margin-left: 40px;
-  }
-  h2 .text {
-    display: inline-block;
-    vertical-align: top;
-    margin-top: 10px;
-    padding-left: 2rem;
-    font-size: 1.4rem;
-    font-weight: normal;
-  }
-
   .loading {
     display: flex;
     justify-content: center;
@@ -101,37 +89,6 @@
   }
   .pong-actions {
     padding: 2rem;
-  }
-  ul, li {
-    list-style: none;
-  }
-  ul {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    margin: 0;
-    padding: 0;
-  }
-  li {
-    padding: 10px 0;
-    align-items: center;
-  }
-  button {
-    height: 5rem;
-    width: 10rem;
-    position: relative;
-    cursor: pointer;
-    margin: 1rem;
-  }
-  button img {
-    padding-left: 6px;
-    width: 2rem;
-    float: left;
-  }
-  button label {
-    font-weight: bold;
-    font-size: 0.8rem;
-    line-height: 2rem;
   }
   .control {
     display:flex;
@@ -197,6 +154,7 @@
     faExternalLinkAlt,
   } from '@fortawesome/free-solid-svg-icons';
   import { FontAwesomeIcon } from 'fontawesome-svelte';
+  import PongButtons from './../components/pong-buttons.svelte';
 
   library.add(faVolumeUp, faVolumeMute, faPlayCircle, faHeadphones, faUsers, faExternalLinkAlt);
 
@@ -354,12 +312,6 @@
     canPlay = !canPlay;
   };
 
-  const pongSwoosh = (id) => {
-    buttons[id].disabled = true;
-    setTimeout(() => (buttons[id].disabled = false), pongActions.find((p) => p.id === id).duration * 1000);
-    socket.emit('pongSwoosh', { id });
-  };
-
   const showPage = () => {
     const channelSlug = params.channelSlug;
     const url = location.origin + location.pathname;
@@ -369,9 +321,6 @@
   const pongTry = () => {
     document.querySelector<Dialog>('#pong-try').show();
   }
-  const playAudio = (id) => {
-    audios[id].play();
-  };
 </script>
 
 <main>
@@ -404,17 +353,9 @@
           <div class="control">
             {#if pongActions}
               <div class="pong-actions">
-                <ul>
-                  {#each pongActions as pong}
-                    <li>
-                      <button on:click="{() => pongSwoosh(pong.id)}" bind:this="{buttons[pong.id]}">
-                        <img src="{pong.icon}" alt="icon">
-                        <!-- svelte-ignore a11y-label-has-associated-control -->
-                        <label>{pong.title}</label>
-                      </button>
-                    </li>
-                  {/each}
-                </ul>
+                {#if pongActions}
+                  <PongButtons pongButtons={pongActions} socket={socket}></PongButtons>
+                {/if}
                 <!-- svelte-ignore a11y-invalid-attribute -->
                 <p class="try"><a href="javascript:void(0)" on:click="{pongTry}">効果音を試聴する&nbsp;<FontAwesomeIcon icon="external-link-alt" /></a></p>
               </div>
@@ -450,20 +391,9 @@
             timeoutMs="-1"></mwc-snackbar>
         </div>
         <mwc-dialog id="pong-try">
-          <ul>
-            {#each pongActions as pong}
-              <li>
-                <button on:click="{() => playAudio(pong.id)}">
-                  <img src="{pong.icon}" alt="icon">
-                  <!-- svelte-ignore a11y-label-has-associated-control -->
-                  <label>{pong.title}</label>
-                </button>
-                <!-- svelte-ignore a11y-media-has-caption -->
-                <audio src="{pong.url}" bind:this="{audios[pong.id]}"></audio>
-                <!-- svelte-ignore a11y-invalid-attribute -->
-              </li>
-            {/each}
-          </ul>
+          {#if pongActions}
+            <PongButtons pongButtons={pongActions}></PongButtons>
+          {/if}
           <p>試聴では効果音は送信されず、この画面でのみ再生されます</p>
           <mwc-button
               slot="primaryAction"
