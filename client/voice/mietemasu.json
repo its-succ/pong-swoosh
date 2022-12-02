@@ -1,0 +1,14 @@
+{
+  "audioConfig": {
+    "audioEncoding": "MP3",
+    "pitch": -0.4,
+    "speakingRate": 1.71
+  },
+  "input": {
+    "text": "見えてます"
+  },
+  "voice": {
+    "languageCode": "ja-JP",
+    "name": "ja-JP-Wavenet-C"
+  }
+}
