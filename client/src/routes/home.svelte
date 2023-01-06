@@ -121,25 +121,38 @@ form > mwc-button {
     max-width: none;
   }
 }
+
+mwc-dialog {
+  --mdc-dialog-max-width: 80%;
+}
+
+.custom {
+  margin: -2em 0 0 0;
+  padding: 0;
+  text-align: center;
+}
+
 </style>
 
 <script lang="ts">
 import '@material/mwc-top-app-bar';
 import '@material/mwc-textfield';
 import '@material/mwc-button';
+import '@material/mwc-dialog';
 import '@material/mwc-snackbar';
 import { io } from 'socket.io-client';
 import { Circle3 } from 'svelte-loading-spinners';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { SERVER_URL } from '../pong-swoosh';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faUsers, faVolumeUp, faShareAlt } from '@fortawesome/free-solid-svg-icons';
+import { faUsers, faVolumeUp, faShareAlt, faCog } from '@fortawesome/free-solid-svg-icons';
 import { faCopy } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from 'fontawesome-svelte';
 import copy from 'copy-to-clipboard';
 import PongButtons from './../components/pong-buttons.svelte';
+import type { Dialog } from '@material/mwc-dialog';
 
-library.add(faUsers, faVolumeUp, faShareAlt, faCopy);
+library.add(faUsers, faVolumeUp, faShareAlt, faCopy, faCog);
 
 let channelName = '';
 let pongSwooshUrl: string | undefined;
@@ -151,6 +164,7 @@ let size = '60';
 let unit = 'px';
 let allButtons: any[];
 let defaultButtons: any[]
+let isOverSelected = false;
 
 const createChannel = async () => {
   loading = true;
@@ -227,6 +241,10 @@ const unload = () => {
     closeChannel();
   }
 };
+
+const pongCustom = () => {
+  document.querySelector<Dialog>('#pong-custom').show();
+}
 </script>
 
 <main>
@@ -248,6 +266,7 @@ const unload = () => {
         </div>
         {#if defaultButtons}
           <PongButtons pongButtons={defaultButtons}></PongButtons>
+          <p class="custom"><a href="javascript:void(0)" on:click="{pongCustom}">効果音を変更する&nbsp;<FontAwesomeIcon icon="cog" /></a></p>
         {/if}
         <div class="warning">
           <strong>このページを離れると {channelName} が終了します。ご注意ください。</strong>
@@ -257,6 +276,28 @@ const unload = () => {
           id="copiedToClipbord"
           labelText="クリップボードにURLをコピーしました"
           timeoutMs="4000"></mwc-snackbar>
+        <mwc-dialog id="pong-custom">
+          {#if allButtons}
+            <PongButtons pongButtons={allButtons} selectable bind:isOverSelected={isOverSelected}></PongButtons>
+          {/if}
+          <mwc-button
+              slot="primaryAction"
+              dialogAction="ok"
+              disabled="{isOverSelected}">
+            保存
+          </mwc-button>
+          <mwc-button
+              slot="secondaryAction"
+              dialogAction="cancel">
+            キャンセル
+          </mwc-button>
+          <mwc-snackbar
+            id="overSelectedError"
+            labelText="選択できる効果音の数は8つまでです"
+            timeoutMs="4000"
+            open="{isOverSelected}"
+            ></mwc-snackbar>
+        </mwc-dialog>
       {:else if loading}
         <div class="loading">
           <Circle3
