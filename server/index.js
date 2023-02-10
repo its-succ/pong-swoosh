@@ -28,93 +28,12 @@ const createChannel = require('./create-channel');
 const closeChannel = require('./close-channel');
 const listChannel = require('./list-channel');
 const joinChannel = require('./join-channel');
+const { updateChannel, findCustomButtonIdsById } = require('./channel');
+const { getAllPongs, getChannelPongs } = require('./pongs');
 
 const pongBaseUrl = ['development', 'test'].includes(process.env.NODE_ENV)
   ? 'http://localhost:5000/pongs'
   : 'https://its-succ.github.io/pong-swoosh/pongs';
-
-const allPongs = [
-  {
-    id: 1,
-    title: '拍手',
-    url: `${pongBaseUrl}/applause.mp3`,
-    icon: `${pongBaseUrl}/applause.svg`,
-    duration: 5,
-    default: true,
-  },
-  {
-    id: 2,
-    title: '納得',
-    url: `${pongBaseUrl}/understand.mp3`,
-    icon: `${pongBaseUrl}/understand.svg`,
-    duration: 2,
-    default: true,
-  },
-  {
-    id: 3,
-    title: '笑い',
-    url: `${pongBaseUrl}/laugh.mp3`,
-    icon: `${pongBaseUrl}/laugh.svg`,
-    duration: 4,
-    default: true,
-  },
-  {
-    id: 4,
-    title: 'えー(驚き)',
-    url: `${pongBaseUrl}/surprise.mp3`,
-    icon: `${pongBaseUrl}/surprise.svg`,
-    duration: 1,
-    default: true,
-  },
-  {
-    id: 5,
-    title: 'おぉ...(感動)',
-    url: `${pongBaseUrl}/wonder.mp3`,
-    icon: `${pongBaseUrl}/wonder.svg`,
-    duration: 2,
-    default: true,
-  },
-  {
-    id: 6,
-    title: 'ドンドンパフパフ',
-    url: `${pongBaseUrl}/dondonpafupafu.mp3`,
-    icon: `${pongBaseUrl}/dondonpafupafu.png`,
-    duration: 2,
-    default: true,
-  },
-  {
-    id: 7,
-    title: 'ドラムロール',
-    url: `${pongBaseUrl}/drum-roll.mp3`,
-    icon: `${pongBaseUrl}/drum-roll.svg`,
-    duration: 4,
-    default: true,
-  },
-  {
-    id: 8,
-    title: 'ドラ',
-    url: `${pongBaseUrl}/gong.mp3`,
-    icon: `${pongBaseUrl}/gong.svg`,
-    duration: 5,
-    default: true,
-  },
-  {
-    id: 9,
-    title: 'へぇー',
-    url: `${pongBaseUrl}/hee.mp3`,
-    icon: `${pongBaseUrl}/hee.svg`,
-    duration: 2,
-    default: false,
-  },
-  {
-    id: 10,
-    title: '見えてます',
-    url: `${pongBaseUrl}/mietemasu.mp3`,
-    icon: `${pongBaseUrl}/mietemasu.svg`,
-    duration: 2,
-    default: false,
-  },
-];
 
 /**
  * チャンネルを削除する
@@ -160,6 +79,15 @@ io.on('connection', (socket) => {
     const err = !created ? Error('Channel can not created.') : undefined;
     callback(err, created);
 
+    if (
+      err === undefined &&
+      event.selectedButtons instanceof Array &&
+      event.selectedButtons.length > 0
+    ) {
+      // 再接続の場合は、イベントにselectedButtonsが指定されてくるので、チャンネルをアップデートする
+      updateChannel(event.userId, created, event.selectedButtons);
+    }
+
     /**
      * チャンネル削除イベント
      *
@@ -174,7 +102,21 @@ io.on('connection', (socket) => {
      * 利用可能なボタン一覧取得イベント
      */
     socket.on('allButtons', async (callback) => {
-      callback(allPongs);
+      callback(getAllPongs(pongBaseUrl));
+    });
+
+    /**
+     * カスタマイズしたボタン一覧を保存するイベント
+     */
+    socket.on('saveCustomButtons', async ({ buttonIds }, callback) => {
+      debug(`saveCustomButtons "${buttonIds}" from ${event.userId}`);
+      try {
+        updateChannel(event.userId, created, buttonIds);
+        if (callback) callback();
+      } catch (e) {
+        console.error('saveCustomButtons', e);
+        if (callback) callback(e);
+      }
     });
 
     /**
@@ -209,7 +151,7 @@ io.on('connection', (socket) => {
     const joined = joinChannel(io, socket, 'controller', event.userId, event.channelId);
     debug('joinChannel', joined);
     const err = !joined ? Error('Channel is not active') : undefined;
-    callback(err, allPongs);
+    callback(err, getChannelPongs(pongBaseUrl, findCustomButtonIdsById(event.channelId)));
     if (!joined) return;
 
     /**
@@ -230,7 +172,7 @@ io.on('connection', (socket) => {
       debug('pongSwoosh', event, socket);
       const count = await redis.incr(`${socket.channel}:${event.id}`);
       debug('COUNT', `${socket.channel}:${event.id}`, count);
-      const pong = allPongs.find((p) => p.id === event.id);
+      const pong = getAllPongs(pongBaseUrl).find((p) => p.id === event.id);
       debug('PONG', pong);
       setTimeout(() => redis.decr(`${socket.channel}:${event.id}`), pong.duration * 1000);
       const listeners = Array.from(io.of('/').in(socket.channel).sockets.values()).filter(
@@ -256,7 +198,9 @@ io.on('connection', (socket) => {
     const joined = joinChannel(io, socket, 'listener', event.userId, event.channelId);
     debug('joinChannel', joined);
     const err = !joined ? Error('Channel is not active') : undefined;
-    if (callback) callback(err, allPongs);
+    if (callback) {
+      callback(err, getChannelPongs(pongBaseUrl, findCustomButtonIdsById(event.channelId)));
+    }
 
     emitLatestParticipants(socket);
 

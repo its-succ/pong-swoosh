@@ -86,3 +86,43 @@ channel.removeChannel = (userId, channelId, channelsFilePath = DEFAULT_CHANNELS_
   }
   saveChannelsFile(channelsFilePath, channelsList);
 };
+
+/**
+ * チャンネルIDとユーザーIDが一致するチャンネルにカスタムボタン一覧を保存する
+ *
+ * @param {string} userId - ユーザーID
+ * @param {string} channelId - チャンネルID
+ * @param {array} buttonIds - 利用するボタンIDの一覧
+ * @param {string} channelsFilePath - チャンネルファイルパス（指定しない場合は `/channels.json`）
+ */
+channel.updateChannel = (
+  userId,
+  channelId,
+  buttonIds,
+  channelsFilePath = DEFAULT_CHANNELS_FILE_PATH
+) => {
+  const channelsList = require(channelsFilePath);
+  for (let i = 0; i < channelsList.length; i++) {
+    if (channelsList[i].id === channelId && channelsList[i].createdBy === userId) {
+      channelsList[i].buttonIds = buttonIds;
+      break;
+    }
+  }
+  saveChannelsFile(channelsFilePath, channelsList);
+};
+
+/**
+ * チャンネルIDが一致するカスタムボタンID一覧を取得する
+ *
+ * @param {string} channelId - チャンネルID
+ * @returns カスタムボタンID一覧。設定されていない場合は undefined が戻る
+ */
+channel.findCustomButtonIdsById = (channelId, channelsFilePath = DEFAULT_CHANNELS_FILE_PATH) => {
+  const channelsList = require(channelsFilePath);
+  for (let i = 0; i < channelsList.length; i++) {
+    if (channelsList[i].id === channelId) {
+      return channelsList[i].buttonIds;
+    }
+  }
+  return undefined;
+};

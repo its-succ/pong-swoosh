@@ -105,7 +105,7 @@ library.add(faGamepad, faVolumeUp);
 type Params = { channelSlug: string };
 export let params: Params;
 
-let socket: any;
+let socket: ReturnType<typeof io>;
 let pongs: any[];
 let buttons = {};
 
