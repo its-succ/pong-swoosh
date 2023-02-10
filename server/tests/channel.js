@@ -69,7 +69,7 @@ test('addChannel', () => {
 })(removeChannel);
 
 ((updateChannel) => {
-  test('チャンネルIDとユーザーIDが一致するチャンネルが削除できる', () => {
+  test('チャンネルIDとユーザーIDが一致するチャンネルにカスタムボタンを更新できる', () => {
     updateChannel('user1', '1', [1, 3, 4, 5, 9, 10], channelsFilePath);
     const actual = require(channelsFilePath);
     assert.equal(actual, [{ ...defaultChannels[0], buttonIds: [1, 3, 4, 5, 9, 10] }]);
