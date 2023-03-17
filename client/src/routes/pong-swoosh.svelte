@@ -179,6 +179,22 @@
     const fp = await FingerprintJS.load();
     const result = await fp.get();
     const visitorId = result.visitorId;
+    const setupPongActions = async (value: any[]) => {
+      const pongLoading = [];
+      value.forEach((pong) => {
+        pongLoading.push(fetch(pong.url));
+      });
+      const responses = await Promise.all(pongLoading);
+      const pongBuffers = [];
+      responses.forEach((response) => {
+        pongBuffers.push(response.arrayBuffer());
+      });
+      const buffers = await Promise.all(pongBuffers);
+      buffers.forEach((buffer, index) => {
+        value[index].buffer = buffer;
+      });
+      return value;
+    };
 
     socket.emit('connectListener', { userId: visitorId, channelId: channelSlug },
       (err, value) => {
@@ -186,24 +202,9 @@
           error(err);
           return;
         }
-        pongActions = value;
-        const pongLoading = [];
-        pongActions.forEach((pong) => {
-          pongLoading.push(fetch(pong.url));
-        });
-        Promise.all(pongLoading).then((responses) => {
-          const pongBuffers = [];
-          responses.forEach((response) => {
-            pongBuffers.push(response.arrayBuffer());
-          });
-          Promise.all(pongBuffers).then((buffers) => {
-            buffers.forEach((buffer, index) => {
-              pongActions[index].buffer = buffer;
-            })
-            done();
-          }).catch((e) => {
-            error(e);
-          });
+        setupPongActions(value).then((results) => {
+          pongActions = results;
+          done();
         }).catch((e) => {
           error(e);
         });
@@ -264,6 +265,10 @@
       },
     );
 
+    socket.on('updatePongs', async (value: any[]) => {
+      pongActions = await setupPongActions(value);
+      document.querySelector<Snackbar>('#notifyUpdatePong').show();
+    });
 
     socket.on('latestParticipants', (listners:number) => {
       console.log(listners)
@@ -404,7 +409,10 @@
           <mwc-snackbar labelText="接続できませんでした" open timeoutMs="-1"></mwc-snackbar>
         </div>
       {/await}
-    {/if}
+      <div>
+        <mwc-snackbar id="notifyUpdatePong" labelText="チャンネルオーナーが利用できる効果音を変更しました" timeoutMs="3000"></mwc-snackbar>
+      </div>
+  {/if}
   </mwc-top-app-bar>
 </main>
 <svelte:window on:load="{showPage}" />

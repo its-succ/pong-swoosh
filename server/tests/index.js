@@ -327,4 +327,48 @@ test('リスナー接続したとき、参加者が通知されること', async
   await new Promise((resolve) => context.clientSocket.emit('deleteChannel', () => resolve()));
 });
 
+test('リスナー接続済みでカスタムボタンが変更されると、参加者へ通知されること', async (context) => {
+  const ownerId = 'test.index.owner.user';
+  const channelName = 'test.index.listeners.custombutton.ch';
+  const listenerId = 'test.index.listener.user.1';
+  // リスナーの数分ソケットを用意する
+  const listenerSocket = new Client(`http://localhost:3000`);
+
+  const buttons = [];
+  listenerSocket.on('updatePongs', (params) => {
+    buttons.push(...params);
+  });
+
+  const channelId = await new Promise((resolve, reject) => {
+    context.clientSocket.emit('createChannel', { userId: ownerId, channelName }, (err, id) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(id);
+    });
+  });
+  await new Promise((resolve, reject) => {
+    listenerSocket.emit(
+      'connectListener',
+      { userId: listenerId, channelId },
+      (err, defaultPongs) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(defaultPongs);
+      }
+    );
+  });
+
+  updateChannelMock = snoop(() => {});
+  await new Promise((resolve, reject) => {
+    const buttonIds = [1, 3, 7];
+    context.clientSocket.emit('saveCustomButtons', { buttonIds }, () => resolve());
+  });
+
+  listenerSocket.close();
+  // チャンネルを削除する
+  await new Promise((resolve) => context.clientSocket.emit('deleteChannel', () => resolve()));
+});
+
 test.run();
