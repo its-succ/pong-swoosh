@@ -165,6 +165,8 @@ let unit = 'px';
 let allButtons: any[];
 let defaultButtons: any[]
 let isOverSelected = false;
+let selectedButtonIds;
+let selectedButtons = [];
 
 const createChannel = async () => {
   loading = true;
@@ -198,7 +200,7 @@ const createChannel = async () => {
   socket.on('connect', () => {
     console.log('connected', socket.id);
     if (pongSwooshUrl) {
-      socket.emit('createChannel', { userId, channelName, channelId }, (err) => {
+      socket.emit('createChannel', { userId, channelName, channelId, selectedButtons }, (err) => {
         if (err) {
           console.error('Error reConnect channel', err);
         }
@@ -244,6 +246,17 @@ const unload = () => {
 
 const pongCustom = () => {
   document.querySelector<Dialog>('#pong-custom').show();
+  document.querySelector<Dialog>('#pong-custom').addEventListener('closed', (e) => {
+    if ((<CustomEvent>e).detail.action === 'ok') {
+      selectedButtons = selectedButtonIds();
+      socket.emit('saveCustomButtons', { buttonIds: selectedButtons }, (err) => {
+        if (err) {
+          console.error('Error saveCustomButtons', err);
+        }
+      });
+      defaultButtons = allButtons.filter(button => selectedButtons.includes(button.id))
+    }
+  });
 }
 </script>
 
@@ -278,7 +291,7 @@ const pongCustom = () => {
           timeoutMs="4000"></mwc-snackbar>
         <mwc-dialog id="pong-custom">
           {#if allButtons}
-            <PongButtons pongButtons={allButtons} selectable bind:isOverSelected={isOverSelected}></PongButtons>
+            <PongButtons pongButtons={allButtons} selectable bind:isOverSelected={isOverSelected} bind:selectedButtonIds={selectedButtonIds}></PongButtons>
           {/if}
           <mwc-button
               slot="primaryAction"

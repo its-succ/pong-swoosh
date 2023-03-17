@@ -51,9 +51,14 @@ input {
   let audios = {};
   let selects = {};
 
+  export function selectedButtonIds() {
+    return Object.keys(selects).filter((id) => selects[id].checked).map((id) => Number(id));
+  }
+
   const play = (id) => {
     if (socket === undefined) {
-      audios[id].play();
+      const button = pongButtons.find((p) => p.id === id);
+      Object.values<HTMLAudioElement>(audios).find((element) => element.getAttribute('src') === button.url).play();
     } else {
       buttons[id].disabled = true;
       setTimeout(() => (buttons[id].disabled = false), pongButtons.find((p) => p.id === id).duration * 1000);

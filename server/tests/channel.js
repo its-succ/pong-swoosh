@@ -1,7 +1,14 @@
 const assert = require('uvu/assert');
 const fs = require('fs');
 const tempy = require('tempy');
-const { addChannel, getChannel, listChannel, removeChannel } = require('../channel');
+const {
+  addChannel,
+  getChannel,
+  findCustomButtonIdsById,
+  listChannel,
+  removeChannel,
+  updateChannel,
+} = require('../channel');
 const { test } = require('uvu');
 
 let channelsFilePath;
@@ -60,5 +67,27 @@ test('addChannel', () => {
     assert.equal(actual, []);
   });
 })(removeChannel);
+
+((updateChannel) => {
+  test('チャンネルIDとユーザーIDが一致するチャンネルにカスタムボタンを更新できる', () => {
+    updateChannel('user1', '1', [1, 3, 4, 5, 9, 10], channelsFilePath);
+    const actual = require(channelsFilePath);
+    assert.equal(actual, [{ ...defaultChannels[0], buttonIds: [1, 3, 4, 5, 9, 10] }]);
+  });
+})(updateChannel);
+
+((findCustomButtonIdsById) => {
+  test('カスタムボタン一覧が設定されていない場合はundefinedになる', () => {
+    const actual = findCustomButtonIdsById('1', channelsFilePath);
+    assert.equal(actual, undefined);
+  });
+
+  test('チャンネルIDが一致するカスタムボタン一覧が取得できる', () => {
+    updateChannel('user1', '1', [1, 3, 4, 5, 9, 10], channelsFilePath);
+    const actual = findCustomButtonIdsById('1', channelsFilePath);
+    assert.equal(actual, [1, 3, 4, 5, 9, 10]);
+  });
+})(findCustomButtonIdsById);
+
 
 test.run();
