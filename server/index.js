@@ -112,6 +112,8 @@ io.on('connection', (socket) => {
       debug(`saveCustomButtons "${buttonIds}" from ${event.userId}`);
       try {
         updateChannel(event.userId, created, buttonIds);
+        // ボタンが更新されたことを通知する
+        io.in(socket.channel).emit('updatePongs', getChannelPongs(pongBaseUrl, buttonIds));
         if (callback) callback();
       } catch (e) {
         console.error('saveCustomButtons', e);
