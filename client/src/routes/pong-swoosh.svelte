@@ -145,6 +145,7 @@
   import '@material/mwc-slider';
   import QrCode from 'svelte-qrcode';
   import { library } from '@fortawesome/fontawesome-svg-core';
+  import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
   import {
     faVolumeUp,
     faVolumeMute,
@@ -153,10 +154,10 @@
     faUsers,
     faExternalLinkAlt,
   } from '@fortawesome/free-solid-svg-icons';
-  import { FontAwesomeIcon } from 'fontawesome-svelte';
+  import Fa from 'svelte-fa'
   import PongButtons from './../components/pong-buttons.svelte';
 
-  library.add(faVolumeUp, faVolumeMute, faPlayCircle, faHeadphones, faUsers, faExternalLinkAlt);
+  library.add(...[faVolumeUp, faVolumeMute, faPlayCircle, faHeadphones, faUsers, faExternalLinkAlt].map((fa) => <IconDefinition>fa));
 
   type Params = { channelSlug: string; channelName: string };
   export let params: Params;
@@ -335,7 +336,7 @@
     {#if canPlay === false}
       <div class="play">
         <div class="icon" on:click="{onClickCanPlay}">
-          <FontAwesomeIcon icon="play-circle" size="10x" />
+          <Fa icon={faPlayCircle} size="10x" />
         </div>
         <!-- svelte-ignore a11y-label-has-associated-control -->
         <label>再生して開始</label>
@@ -360,7 +361,7 @@
                   <PongButtons pongButtons={pongActions} socket={socket}></PongButtons>
                 {/if}
                 <!-- svelte-ignore a11y-invalid-attribute -->
-                <p class="try"><a href="javascript:void(0)" on:click="{pongTry}">効果音を試聴する&nbsp;<FontAwesomeIcon icon="external-link-alt" /></a></p>
+                <p class="try"><a href="javascript:void(0)" on:click="{pongTry}">効果音を試聴する&nbsp;<Fa icon={faExternalLinkAlt} /></a></p>
               </div>
             {/if}
             <div class="remote-help">
@@ -377,7 +378,7 @@
           </div>
           <div class="volume">
             <div id="volumeup" on:click="{onClickMute}">
-              <FontAwesomeIcon icon="{volumeIcon}" size="lg" />
+              <Fa icon="{volumeIcon}" size="lg" />
             </div>
             <div class="slider">
               <mwc-slider pin step="1" value="50" min="0" max="100" on:change="{onChangeVolume}"
@@ -385,7 +386,7 @@
             </div>
           </div>
           <div class="participants">
-            <div class="icon"><FontAwesomeIcon icon="users" size="lg" /></div>
+            <div class="icon"><Fa icon={faUsers} size="lg" /></div>
             <p>現在の参加者数は {participants}人です。</p>
           </div>
           <mwc-snackbar

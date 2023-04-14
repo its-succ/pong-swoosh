@@ -73,6 +73,16 @@ form > mwc-button {
   text-align: center;
 }
 
+[slot="actionItems"] .icon {
+  color: black;
+  margin: 0 0.5rem;
+}
+
+.release {
+  text-align: center;
+  font-weight: bolder;
+}
+
 #intro p {
   font-size: small;
   padding: 1rem;
@@ -145,14 +155,16 @@ import { Circle3 } from 'svelte-loading-spinners';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { SERVER_URL } from '../pong-swoosh';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faUsers, faVolumeUp, faShareAlt, faCog } from '@fortawesome/free-solid-svg-icons';
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import { faUsers, faVolumeUp, faShareAlt, faCog, faRocket, faBug, faUser } from '@fortawesome/free-solid-svg-icons';
 import { faCopy } from '@fortawesome/free-regular-svg-icons';
-import { FontAwesomeIcon } from 'fontawesome-svelte';
+import { faGithub } from '@fortawesome/free-brands-svg-icons/faGithub';
+import Fa from 'svelte-fa'
 import copy from 'copy-to-clipboard';
 import PongButtons from './../components/pong-buttons.svelte';
 import type { Dialog } from '@material/mwc-dialog';
 
-library.add(faUsers, faVolumeUp, faShareAlt, faCopy, faCog);
+library.add(...[faUsers, faVolumeUp, faShareAlt, faCopy, faCog, faGithub, faRocket, faBug].map((fa) => <IconDefinition>fa));
 
 let channelName = '';
 let pongSwooshUrl: string | undefined;
@@ -266,6 +278,9 @@ const pongCustom = () => {
       pong-swoosh
       <div class="subtitle">リモートポン出しWebシステム - Pong (っ’-‘)╮ =͟͟͞͞ 🎉</div>
     </div>
+    <a href="https://github.com/its-succ/pong-swoosh" target="_blank" rel="noreferrer" slot="actionItems" title="GitHubリポジトリ"><div class="icon"><Fa icon={faGithub} /></div></a>
+    <a href="https://github.com/its-succ/pong-swoosh/releases" target="_blank" rel="noreferrer" slot="actionItems" title="リリース一覧"><div class="icon"><Fa icon={faRocket} /></div></a>
+    <a href="https://github.com/its-succ/pong-swoosh/issues" target="_blank" rel="noreferrer" slot="actionItems" title="不具合/改善要望"><div class="icon"><Fa icon={faBug} /></div></a>
     <div>
       {#if pongSwooshUrl}
         <div class="success">
@@ -273,13 +288,13 @@ const pongCustom = () => {
             >チャンネル「{channelName}」を作成しました。以下のURLを参加者に共有してください。</strong>
         </div>
         <div class="pongSwooshUrl">
-          <div on:click="{copyToClipbord}"><FontAwesomeIcon icon="{faCopy}" size="2x" />&nbsp;</div>
+          <div on:click="{copyToClipbord}"><Fa icon={faCopy} size="2x" />&nbsp;</div>
           <!-- svelte-ignore a11y-missing-content -->
           <a href="{pongSwooshUrl}">{pongSwooshUrl}</a>
         </div>
         {#if defaultButtons}
           <PongButtons pongButtons={defaultButtons}></PongButtons>
-          <p class="custom"><a href="javascript:void(0)" on:click="{pongCustom}">効果音を変更する&nbsp;<FontAwesomeIcon icon="cog" /></a></p>
+          <p class="custom"><a href="javascript:void(0)" on:click="{pongCustom}">効果音を変更する&nbsp;<Fa icon={faCog} /></a></p>
         {/if}
         <div class="warning">
           <strong>このページを離れると {channelName} が終了します。ご注意ください。</strong>
@@ -322,6 +337,7 @@ const pongCustom = () => {
             ballBottomRight="#676778" />
         </div>
       {:else}
+        <p class="release"><Fa icon={faRocket} />&nbsp;2023年4月14日 新しいバージョンをリリースしました。詳しくは<a href="https://github.com/its-succ/pong-swoosh/releases/tag/v1.1.0" target="_blank" rel="noreferrer">リリースノート</a>をご覧ください。</p>
         <form>
           <mwc-textfield
             id="channelName"
@@ -333,17 +349,17 @@ const pongCustom = () => {
         </form>
         <div id="intro">
           <div>
-            <div class="icon"><FontAwesomeIcon icon="users" size="3x" /></div>
+            <div class="icon"><Fa icon={faUsers} size="3x" /></div>
             <p>ZoomやMeetなどのWeb会議システムを利用しながら、複数の人で効果音を共有できます</p>
           </div>
           <div>
-            <div class="icon"><FontAwesomeIcon icon="volume-up" size="3x" /></div>
+            <div class="icon"><Fa icon={faVolumeUp} size="3x" /></div>
             <p>
               参加人数、リアクションした人の人数に応じてダイナミックに音量が変化するので、臨場感溢れる体験が得られます
             </p>
           </div>
           <div>
-            <div class="icon"><FontAwesomeIcon icon="share-alt" size="3x" /></div>
+            <div class="icon"><Fa icon={faShareAlt} size="3x" /></div>
             <p>利用は簡単、共有チャンネル名を入れて作成して表示されるURLを共有するだけです</p>
           </div>
         </div>

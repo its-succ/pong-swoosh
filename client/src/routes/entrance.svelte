@@ -86,10 +86,11 @@ article + article {
 import '@material/mwc-top-app-bar';
 import QrCode from 'svelte-qrcode';
 import { library } from '@fortawesome/fontawesome-svg-core';
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faGamepad, faHeadphones } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from 'fontawesome-svelte';
+import Fa from 'svelte-fa'
 
-library.add(faGamepad, faHeadphones);
+library.add(...[faGamepad, faHeadphones].map((fa) => <IconDefinition>fa));
 
 let channelName: string | undefined;
 let controllerUrl: string | undefined;
@@ -121,7 +122,7 @@ const showEntrance = () => {
       <section>
         <article>
           <h3>
-            <FontAwesomeIcon icon="{faGamepad}" size="2x" /><span class="text">コントローラー</span>
+            <Fa icon="{faGamepad}" size="2x" /><span class="text">コントローラー</span>
           </h3>
           <p class="qr"><QrCode value="{controllerUrl}" /></p>
           <a href="{controllerUrl}">{controllerUrl}</a>
@@ -131,7 +132,7 @@ const showEntrance = () => {
         </article>
         <article>
           <h3>
-            <FontAwesomeIcon icon="{faHeadphones}" size="2x" /><span class="text">スピーカー</span>
+            <Fa icon="{faHeadphones}" size="2x" /><span class="text">スピーカー</span>
           </h3>
           <p class="qr"><QrCode value="{speakerUrl}" /></p>
           <a href="{speakerUrl}">{speakerUrl}</a>

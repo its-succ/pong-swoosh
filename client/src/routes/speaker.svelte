@@ -105,6 +105,7 @@ import { Circle3 } from 'svelte-loading-spinners';
 import { SERVER_URL } from '../pong-swoosh';
 import '@material/mwc-slider';
 import { library } from '@fortawesome/fontawesome-svg-core';
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   faVolumeUp,
   faVolumeMute,
@@ -112,9 +113,9 @@ import {
   faHeadphones,
   faUsers
 } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from 'fontawesome-svelte';
+import Fa from 'svelte-fa'
 
-library.add(faVolumeUp, faVolumeMute, faPlayCircle, faHeadphones, faUsers);
+library.add(...[faVolumeUp, faVolumeMute, faPlayCircle, faHeadphones, faUsers].map((fa) => <IconDefinition>fa));
 
 type Params = { channelSlug: string };
 export let params: Params;
@@ -252,7 +253,7 @@ const onClickCanPlay = () => {
     {#if canPlay === false}
       <div class="play">
         <div class="icon" on:click="{onClickCanPlay}">
-          <FontAwesomeIcon icon="play-circle" size="10x" />
+          <Fa icon={faPlayCircle} size="10x" />
         </div>
         <!-- svelte-ignore a11y-label-has-associated-control -->
         <label>再生して開始</label>
@@ -271,11 +272,11 @@ const onClickCanPlay = () => {
       {:then value}
         <div>
           <h2>
-            <FontAwesomeIcon icon="{faHeadphones}" size="2x" /><span class="text">スピーカー</span>
+            <Fa icon="{faHeadphones}" size="2x" /><span class="text">スピーカー</span>
           </h2>
           <div class="volume">
             <div id="volumeup" on:click="{onClickMute}">
-              <FontAwesomeIcon icon="{volumeIcon}" size="lg" />
+              <Fa icon="{volumeIcon}" size="lg" />
             </div>
             <div class="slider">
               <mwc-slider pin step="1" value="50" min="0" max="100" on:change="{onChangeVolume}"
@@ -283,7 +284,7 @@ const onClickCanPlay = () => {
             </div>
           </div>
           <div class="participants">
-            <div class="icon"><FontAwesomeIcon icon="users" size="lg" /></div>
+            <div class="icon"><Fa icon="users" size="lg" /></div>
             <p>現在の参加者数は {participants}人です。</p>
           </div>
           <mwc-snackbar
