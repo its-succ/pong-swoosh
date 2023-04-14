@@ -34,18 +34,6 @@
     padding: 1em 0;
   }
 
-  h2 {
-    margin-left: 40px;
-  }
-  h2 .text {
-    display: inline-block;
-    vertical-align: top;
-    margin-top: 10px;
-    padding-left: 2rem;
-    font-size: 1.4rem;
-    font-weight: normal;
-  }
-
   .loading {
     display: flex;
     justify-content: center;
@@ -102,37 +90,6 @@
   .pong-actions {
     padding: 2rem;
   }
-  ul, li {
-    list-style: none;
-  }
-  ul {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    margin: 0;
-    padding: 0;
-  }
-  li {
-    padding: 10px 0;
-    align-items: center;
-  }
-  button {
-    height: 5rem;
-    width: 10rem;
-    position: relative;
-    cursor: pointer;
-    margin: 1rem;
-  }
-  button img {
-    padding-left: 6px;
-    width: 2rem;
-    float: left;
-  }
-  button label {
-    font-weight: bold;
-    font-size: 0.8rem;
-    line-height: 2rem;
-  }
   .control {
     display:flex;
   }
@@ -188,6 +145,7 @@
   import '@material/mwc-slider';
   import QrCode from 'svelte-qrcode';
   import { library } from '@fortawesome/fontawesome-svg-core';
+  import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
   import {
     faVolumeUp,
     faVolumeMute,
@@ -196,19 +154,18 @@
     faUsers,
     faExternalLinkAlt,
   } from '@fortawesome/free-solid-svg-icons';
-  import { FontAwesomeIcon } from 'fontawesome-svelte';
+  import Fa from 'svelte-fa'
+  import PongButtons from './../components/pong-buttons.svelte';
 
-  library.add(faVolumeUp, faVolumeMute, faPlayCircle, faHeadphones, faUsers, faExternalLinkAlt);
+  library.add(...[faVolumeUp, faVolumeMute, faPlayCircle, faHeadphones, faUsers, faExternalLinkAlt].map((fa) => <IconDefinition>fa));
 
   type Params = { channelSlug: string; channelName: string };
   export let params: Params;
 
   let socket: Socket;
-  let buttons = {};
   const pongSounds: any[] = [];
   let pongActions: any[];
   let controllerUrl: string | undefined;
-  let audios = {};
 
   async function signIn() {
     let done;
@@ -223,6 +180,22 @@
     const fp = await FingerprintJS.load();
     const result = await fp.get();
     const visitorId = result.visitorId;
+    const setupPongActions = async (value: any[]) => {
+      const pongLoading = [];
+      value.forEach((pong) => {
+        pongLoading.push(fetch(pong.url));
+      });
+      const responses = await Promise.all(pongLoading);
+      const pongBuffers = [];
+      responses.forEach((response) => {
+        pongBuffers.push(response.arrayBuffer());
+      });
+      const buffers = await Promise.all(pongBuffers);
+      buffers.forEach((buffer, index) => {
+        value[index].buffer = buffer;
+      });
+      return value;
+    };
 
     socket.emit('connectListener', { userId: visitorId, channelId: channelSlug },
       (err, value) => {
@@ -230,24 +203,9 @@
           error(err);
           return;
         }
-        pongActions = value;
-        const pongLoading = [];
-        pongActions.forEach((pong) => {
-          pongLoading.push(fetch(pong.url));
-        });
-        Promise.all(pongLoading).then((responses) => {
-          const pongBuffers = [];
-          responses.forEach((response) => {
-            pongBuffers.push(response.arrayBuffer());
-          });
-          Promise.all(pongBuffers).then((buffers) => {
-            buffers.forEach((buffer, index) => {
-              pongActions[index].buffer = buffer;
-            })
-            done();
-          }).catch((e) => {
-            error(e);
-          });
+        setupPongActions(value).then((results) => {
+          pongActions = results;
+          done();
         }).catch((e) => {
           error(e);
         });
@@ -308,6 +266,10 @@
       },
     );
 
+    socket.on('updatePongs', async (value: any[]) => {
+      pongActions = await setupPongActions(value);
+      document.querySelector<Snackbar>('#notifyUpdatePong').show();
+    });
 
     socket.on('latestParticipants', (listners:number) => {
       console.log(listners)
@@ -354,12 +316,6 @@
     canPlay = !canPlay;
   };
 
-  const pongSwoosh = (id) => {
-    buttons[id].disabled = true;
-    setTimeout(() => (buttons[id].disabled = false), pongActions.find((p) => p.id === id).duration * 1000);
-    socket.emit('pongSwoosh', { id });
-  };
-
   const showPage = () => {
     const channelSlug = params.channelSlug;
     const url = location.origin + location.pathname;
@@ -369,9 +325,6 @@
   const pongTry = () => {
     document.querySelector<Dialog>('#pong-try').show();
   }
-  const playAudio = (id) => {
-    audios[id].play();
-  };
 </script>
 
 <main>
@@ -383,7 +336,7 @@
     {#if canPlay === false}
       <div class="play">
         <div class="icon" on:click="{onClickCanPlay}">
-          <FontAwesomeIcon icon="play-circle" size="10x" />
+          <Fa icon={faPlayCircle} size="10x" />
         </div>
         <!-- svelte-ignore a11y-label-has-associated-control -->
         <label>再生して開始</label>
@@ -404,19 +357,11 @@
           <div class="control">
             {#if pongActions}
               <div class="pong-actions">
-                <ul>
-                  {#each pongActions as pong}
-                    <li>
-                      <button on:click="{() => pongSwoosh(pong.id)}" bind:this="{buttons[pong.id]}">
-                        <img src="{pong.icon}" alt="icon">
-                        <!-- svelte-ignore a11y-label-has-associated-control -->
-                        <label>{pong.title}</label>
-                      </button>
-                    </li>
-                  {/each}
-                </ul>
+                {#if pongActions}
+                  <PongButtons pongButtons={pongActions} socket={socket}></PongButtons>
+                {/if}
                 <!-- svelte-ignore a11y-invalid-attribute -->
-                <p class="try"><a href="javascript:void(0)" on:click="{pongTry}">効果音を試聴する&nbsp;<FontAwesomeIcon icon="external-link-alt" /></a></p>
+                <p class="try"><a href="javascript:void(0)" on:click="{pongTry}">効果音を試聴する&nbsp;<Fa icon={faExternalLinkAlt} /></a></p>
               </div>
             {/if}
             <div class="remote-help">
@@ -433,7 +378,7 @@
           </div>
           <div class="volume">
             <div id="volumeup" on:click="{onClickMute}">
-              <FontAwesomeIcon icon="{volumeIcon}" size="lg" />
+              <Fa icon="{volumeIcon}" size="lg" />
             </div>
             <div class="slider">
               <mwc-slider pin step="1" value="50" min="0" max="100" on:change="{onChangeVolume}"
@@ -441,7 +386,7 @@
             </div>
           </div>
           <div class="participants">
-            <div class="icon"><FontAwesomeIcon icon="users" size="lg" /></div>
+            <div class="icon"><Fa icon={faUsers} size="lg" /></div>
             <p>現在の参加者数は {participants}人です。</p>
           </div>
           <mwc-snackbar
@@ -450,20 +395,9 @@
             timeoutMs="-1"></mwc-snackbar>
         </div>
         <mwc-dialog id="pong-try">
-          <ul>
-            {#each pongActions as pong}
-              <li>
-                <button on:click="{() => playAudio(pong.id)}">
-                  <img src="{pong.icon}" alt="icon">
-                  <!-- svelte-ignore a11y-label-has-associated-control -->
-                  <label>{pong.title}</label>
-                </button>
-                <!-- svelte-ignore a11y-media-has-caption -->
-                <audio src="{pong.url}" bind:this="{audios[pong.id]}"></audio>
-                <!-- svelte-ignore a11y-invalid-attribute -->
-              </li>
-            {/each}
-          </ul>
+          {#if pongActions}
+            <PongButtons pongButtons={pongActions}></PongButtons>
+          {/if}
           <p>試聴では効果音は送信されず、この画面でのみ再生されます</p>
           <mwc-button
               slot="primaryAction"
@@ -476,7 +410,10 @@
           <mwc-snackbar labelText="接続できませんでした" open timeoutMs="-1"></mwc-snackbar>
         </div>
       {/await}
-    {/if}
+      <div>
+        <mwc-snackbar id="notifyUpdatePong" labelText="チャンネルオーナーが利用できる効果音を変更しました" timeoutMs="3000"></mwc-snackbar>
+      </div>
+  {/if}
   </mwc-top-app-bar>
 </main>
 <svelte:window on:load="{showPage}" />

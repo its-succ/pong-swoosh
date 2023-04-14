@@ -97,15 +97,16 @@ import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { Circle3 } from 'svelte-loading-spinners';
 import { SERVER_URL } from '../pong-swoosh';
 import { library } from '@fortawesome/fontawesome-svg-core';
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faGamepad, faVolumeUp } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from 'fontawesome-svelte';
+import Fa from 'svelte-fa'
 
-library.add(faGamepad, faVolumeUp);
+library.add(...[faGamepad, faVolumeUp].map((fa) => <IconDefinition>fa));
 
 type Params = { channelSlug: string };
 export let params: Params;
 
-let socket: any;
+let socket: ReturnType<typeof io>;
 let pongs: any[];
 let buttons = {};
 
@@ -193,7 +194,7 @@ let unit = 'px';
       <h1 slot="title">pong-swoosh</h1>
       <div>
         <h2>
-          <FontAwesomeIcon icon="{faGamepad}" size="2x" /><span class="text">コントローラー</span>
+          <Fa icon="{faGamepad}" size="2x" /><span class="text">コントローラー</span>
         </h2>
         {#if pongs}
           <ul>
