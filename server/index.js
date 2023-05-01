@@ -21,6 +21,15 @@ server.listen(port, () => {
 
 const Redis = require('ioredis');
 const redis = new Redis(process.env.REDIS_URL);
+redis.on('error', (err) => {
+  console.error(err.message);
+});
+const { createAdapter } = require('@socket.io/redis-adapter');
+const subClient = redis.duplicate();
+subClient.on('error', (err) => {
+  console.error(err.message);
+});
+io.adapter(createAdapter(redis, subClient));
 
 const { DateTime } = require('luxon');
 

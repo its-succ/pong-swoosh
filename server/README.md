@@ -23,3 +23,25 @@ Firestore Emulator の起動に JDK 11+ が必要になるので、OpenJDK と�
 ```
 DEBUG=pong-swoosh REDIS_URL=6379 FIRESTORE_EMULATOR_HOST=localhost:8999 NODE_ENV=development npm start
 ```
+
+## デプロイ
+
+### 事前準備
+
+[ソースコードからのデプロイ](https://cloud.google.com/run/docs/deploying-source-code?hl=ja)
+
+### コマンド
+
+```
+export REGION=asia-northeast1
+export CONNECTOR_NAME=pong-swoosh-vpc-connectot
+export REDISHOST=$(gcloud redis instances describe pong-swoosh-redis-basic --project pong-swoosh --region $REGION --format "value(host)")
+
+gcloud run deploy pong-swoosh --source . \
+--project pong-swoosh \
+--allow-unauthenticated \
+--region $REGION \
+--timeout 3600 \
+--vpc-connector $CONNECTOR_NAME \
+--set-env-vars REDIS_URL=$REDISHOST
+```
