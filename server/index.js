@@ -43,7 +43,7 @@ const pongBaseUrl = ['development', 'test'].includes(process.env.NODE_ENV)
 const deleteChannel = async (event, channelId) => {
   debug(`deleteChannel "${event.channelName}" from ${event.userId}`);
   try {
-    closeChannel(io, event.userId, channelId);
+    await closeChannel(io, event.userId, channelId);
     const keys = await redis.keys(`${channelId}:*`);
     const pipeline = redis.pipeline();
     keys.forEach((key) => pipeline.del(key));
@@ -72,9 +72,9 @@ io.on('connection', (socket) => {
    * @param {string} event.channelId - チャンネルID。再接続する場合のみ指定される
    * @param {function} callback コールバック関数
    */
-  socket.once('createChannel', (event, callback) => {
+  socket.once('createChannel', async (event, callback) => {
     debug(`createChannel "${event.channelName}" from ${event.userId}`);
-    const created = createChannel(socket, event.userId, event.channelName, event.channelId);
+    const created = await createChannel(socket, event.userId, event.channelName, event.channelId);
 
     const err = !created ? Error('Channel can not created.') : undefined;
     callback(err, created);
@@ -85,7 +85,7 @@ io.on('connection', (socket) => {
       event.selectedButtons.length > 0
     ) {
       // 再接続の場合は、イベントにselectedButtonsが指定されてくるので、チャンネルをアップデートする
-      updateChannel(event.userId, created, event.selectedButtons);
+      await updateChannel(event.userId, created, event.selectedButtons);
     }
 
     /**
@@ -111,7 +111,7 @@ io.on('connection', (socket) => {
     socket.on('saveCustomButtons', async ({ buttonIds }, callback) => {
       debug(`saveCustomButtons "${buttonIds}" from ${event.userId}`);
       try {
-        updateChannel(event.userId, created, buttonIds);
+        await updateChannel(event.userId, created, buttonIds);
         // ボタンが更新されたことを通知する
         io.in(socket.channel).emit('updatePongs', getChannelPongs(pongBaseUrl, buttonIds));
         if (callback) callback();
@@ -148,12 +148,13 @@ io.on('connection', (socket) => {
    * @param {string} event.channelId - チャンネルID
    * @param {function} callback コールバック関数
    */
-  socket.once('connectController', (event, callback) => {
+  socket.once('connectController', async (event, callback) => {
     debug('connectController', event);
     const joined = joinChannel(io, socket, 'controller', event.userId, event.channelId);
     debug('joinChannel', joined);
     const err = !joined ? Error('Channel is not active') : undefined;
-    callback(err, getChannelPongs(pongBaseUrl, findCustomButtonIdsById(event.channelId)));
+    const customButtons = await findCustomButtonIdsById(event.channelId);
+    callback(err, getChannelPongs(pongBaseUrl, customButtons));
     if (!joined) return;
 
     /**
@@ -195,13 +196,14 @@ io.on('connection', (socket) => {
    * @param {string} event.channelId - チャンネルID
    * @param {function} callback コールバック関数
    */
-  socket.once('connectListener', (event, callback) => {
+  socket.once('connectListener', async (event, callback) => {
     debug('connectListener', event);
     const joined = joinChannel(io, socket, 'listener', event.userId, event.channelId);
     debug('joinChannel', joined);
     const err = !joined ? Error('Channel is not active') : undefined;
     if (callback) {
-      callback(err, getChannelPongs(pongBaseUrl, findCustomButtonIdsById(event.channelId)));
+      const customButtons = await findCustomButtonIdsById(event.channelId);
+      callback(err, getChannelPongs(pongBaseUrl, customButtons));
     }
 
     emitLatestParticipants(socket);

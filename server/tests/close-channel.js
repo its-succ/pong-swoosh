@@ -6,7 +6,7 @@ const { Server } = require('socket.io');
 const { snoop } = require('snoop');
 const { test } = require('uvu');
 
-const removeChannelMock = snoop(() => {});
+const removeChannelMock = snoop(() => Promise.resolve({}));
 const closeChannel = proxyquire('../close-channel', {
   './channel': { removeChannel: removeChannelMock.fn },
 });
@@ -31,7 +31,7 @@ test.after.each((context) => {
   context.clientSocket.close();
 });
 
-test('接続しているクライアントが切断されること', (context) => {
+test('接続しているクライアントが切断されること', async (context) => {
   context.socket.join('test.ch');
   context.socket.userrole = 'owner';
   context.socket.username = 'test.user';
@@ -39,7 +39,7 @@ test('接続しているクライアントが切断されること', (context) =
   const leaveMock = snoop(() => {});
   context.socket.leave = leaveMock.fn;
 
-  closeChannel(context.io, 'test.user', 'test.ch');
+  await closeChannel(context.io, 'test.user', 'test.ch');
 
   assert.ok(leaveMock.called);
   assert.is(leaveMock.callCount, 1);

@@ -1,24 +1,17 @@
-const fs = require('fs');
+const { Firestore } = require('@google-cloud/firestore');
 const channel = {};
-const DEFAULT_CHANNELS_FILE_PATH = './channels.json';
 
 /**
  * チャンネルモジュール
  *
- * チャンネル一覧ファイルのフォーマット
- * [
- *   { name: "チャンネル名", id: "チャンネルID", createdBy: "チャンネル作成ユーザーID" }
- * ]
+ * チャンネルエンティティのフォーマット
+ * { name: "チャンネル名", id: "チャンネルID", createdBy: "チャンネル作成ユーザーID", buttonIds: [...カスタムボタンID] }
  */
 module.exports = channel;
 
-const saveChannelsFile = (channelsFilePath, channels) => {
-  try {
-    fs.writeFileSync(channelsFilePath, JSON.stringify(channels, null, 4));
-    console.log('Channels list updated.');
-  } catch (err) {
-    console.log(err);
-  }
+const channelDb = () => {
+  const firestore = new Firestore();
+  return firestore.collection('channel');
 };
 
 /**
@@ -27,17 +20,11 @@ const saveChannelsFile = (channelsFilePath, channels) => {
  * @param {string} userId - ユーザーID
  * @param {string} channelId - チャンネルID
  * @param {string} channelName - チャンネル名
- * @param {string} channelsFilePath - チャンネルファイルパス（指定しない場合は `/channels.json`）
+ * @returns {Promise<FirebaseFirestore.WriteResult>} 追加結果
  */
-channel.addChannel = (
-  userId,
-  channelId,
-  channelName,
-  channelsFilePath = DEFAULT_CHANNELS_FILE_PATH
-) => {
-  const channelsList = require(channelsFilePath);
-  channelsList.push({ name: channelName, id: channelId, createdBy: userId });
-  saveChannelsFile(channelsFilePath, channelsList);
+channel.addChannel = (userId, channelId, channelName) => {
+  const db = channelDb();
+  return db.doc(channelId).set({ name: channelName, createdBy: userId });
 };
 
 /**
@@ -45,13 +32,15 @@ channel.addChannel = (
  *
  * @param {string} userId - ユーザーID
  * @param {string} channelName - チャンネル名
- * @param {string} channelsFilePath - チャンネルファイルパス（指定しない場合は `/channels.json`）
+ * @returns {Promise<FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>} 一致するチャンネルデータ。見つからない場合は false が戻る
  */
-channel.getChannel = (userId, channelName, channelsFilePath = DEFAULT_CHANNELS_FILE_PATH) => {
-  const channelsList = require(channelsFilePath);
-  for (let i = 0; i < channelsList.length; i++) {
-    if (channelsList[i].name === channelName && channelsList[i].createdBy === userId) {
-      return channelsList[i];
+channel.getChannel = async (userId, channelName) => {
+  const db = channelDb();
+  const snapshot = await db.get();
+  for (const doc of snapshot.docs) {
+    const ch = doc.data();
+    if (ch.name === channelName && ch.createdBy === userId) {
+      return { ...ch, id: doc.id };
     }
   }
   return false;
@@ -61,12 +50,17 @@ channel.getChannel = (userId, channelName, channelsFilePath = DEFAULT_CHANNELS_F
  * ユーザーIDが一致するチャンネル一覧を取得する
  *
  * @param {string} userId - ユーザーID
- * @param {string} channelsFilePath - チャンネルファイルパス（指定しない場合は `/channels.json`）
  * @returns {array} チャンネル一覧
  */
-channel.listChannel = (userId, channelsFilePath = DEFAULT_CHANNELS_FILE_PATH) => {
-  const channelsList = require(channelsFilePath);
-  return channelsList.filter((c) => c.createdBy === userId);
+channel.listChannel = async (userId) => {
+  const db = channelDb();
+  const snapshot = await db.get();
+  return snapshot.docs
+    .filter((doc) => doc.data().createdBy === userId)
+    .map((doc) => {
+      const ch = doc.data();
+      return { ...ch, id: doc.id };
+    });
 };
 
 /**
@@ -74,17 +68,13 @@ channel.listChannel = (userId, channelsFilePath = DEFAULT_CHANNELS_FILE_PATH) =>
  *
  * @param {string} userId - ユーザーID
  * @param {string} channelId - チャンネルID
- * @param {string} channelsFilePath - チャンネルファイルパス（指定しない場合は `/channels.json`）
  */
-channel.removeChannel = (userId, channelId, channelsFilePath = DEFAULT_CHANNELS_FILE_PATH) => {
-  const channelsList = require(channelsFilePath);
-  for (let i = 0; i < channelsList.length; i++) {
-    if (channelsList[i].id === channelId && channelsList[i].createdBy === userId) {
-      channelsList.splice(i, 1);
-      break;
-    }
+channel.removeChannel = async (userId, channelId) => {
+  const db = channelDb();
+  const ch = await db.doc(channelId).get();
+  if (ch && ch.data().createdBy === userId) {
+    await db.doc(channelId).delete();
   }
-  saveChannelsFile(channelsFilePath, channelsList);
 };
 
 /**
@@ -93,22 +83,13 @@ channel.removeChannel = (userId, channelId, channelsFilePath = DEFAULT_CHANNELS_
  * @param {string} userId - ユーザーID
  * @param {string} channelId - チャンネルID
  * @param {array} buttonIds - 利用するボタンIDの一覧
- * @param {string} channelsFilePath - チャンネルファイルパス（指定しない場合は `/channels.json`）
  */
-channel.updateChannel = (
-  userId,
-  channelId,
-  buttonIds,
-  channelsFilePath = DEFAULT_CHANNELS_FILE_PATH
-) => {
-  const channelsList = require(channelsFilePath);
-  for (let i = 0; i < channelsList.length; i++) {
-    if (channelsList[i].id === channelId && channelsList[i].createdBy === userId) {
-      channelsList[i].buttonIds = buttonIds;
-      break;
-    }
+channel.updateChannel = async (userId, channelId, buttonIds) => {
+  const db = channelDb();
+  const ch = await db.doc(channelId).get();
+  if (ch && ch.data().createdBy === userId) {
+    await db.doc(channelId).update({ buttonIds });
   }
-  saveChannelsFile(channelsFilePath, channelsList);
 };
 
 /**
@@ -117,12 +98,11 @@ channel.updateChannel = (
  * @param {string} channelId - チャンネルID
  * @returns カスタムボタンID一覧。設定されていない場合は undefined が戻る
  */
-channel.findCustomButtonIdsById = (channelId, channelsFilePath = DEFAULT_CHANNELS_FILE_PATH) => {
-  const channelsList = require(channelsFilePath);
-  for (let i = 0; i < channelsList.length; i++) {
-    if (channelsList[i].id === channelId) {
-      return channelsList[i].buttonIds;
-    }
+channel.findCustomButtonIdsById = async (channelId) => {
+  const db = channelDb();
+  const ch = await db.doc(channelId).get();
+  if (ch) {
+    return ch.data().buttonIds;
   }
   return undefined;
 };

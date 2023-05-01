@@ -1,0 +1,62 @@
+#
+# PR の CI
+#
+name: build
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - 'feature/**'
+      - 'release/**'
+      - develop
+      - main
+    paths:
+      - 'server/**'
+jobs:
+  build:
+    if: |
+      ${{
+        contains(github.head_ref, 'dependabot') ||
+        contains(github.head_ref, 'feature') ||
+        contains(github.head_ref, 'hotfix') ||
+        contains(github.head_ref, 'develop') ||
+        contains(github.head_ref, 'release')
+      }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+    services:
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      firestore:
+        image: mtlynch/firestore-emulator
+    env:
+      REDIS_URL: redis:6379
+      FIRESTORE_EMULATOR_HOST: firestore:8080
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: install
+        run: npm i
+        working-directory: ./server
+      - name: lint
+        run: npm run lint
+        working-directory: ./server
+      - name: prettier-check
+        run: npm run prettier-check
+        working-directory: ./server
+      - name: build
+        run: npm t
+        working-directory: ./server
+  

@@ -27,22 +27,22 @@ test.after.each((context) => {
   context.clientSocket.close();
 });
 
-test('同一ユーザーで、同一チャンネル名で、再接続でない場合はエラーになること', (context) => {
-  const getChannelMock = snoop(() => true); // 同一チャンネルが存在している場合
-  const addChannelMock = snoop(() => {});
+test('同一ユーザーで、同一チャンネル名で、再接続でない場合はエラーになること', async (context) => {
+  const getChannelMock = snoop(() => Promise.resolve(true)); // 同一チャンネルが存在している場合
+  const addChannelMock = snoop(() => Promise.resolve({}));
   const createChannel = proxyquire('../create-channel', {
     './channel': {
       getChannel: getChannelMock.fn,
       addChannel: addChannelMock.fn,
     },
   });
-  const result = createChannel(context.socket, 'test', 'test.ch');
+  const result = await createChannel(context.socket, 'test', 'test.ch');
   assert.equal(result, undefined);
 });
 
-test('まだ作成されていないチャンネルの場合は、チャンネル追加されてソケットにオーナー登録されること', (context) => {
-  const getChannelMock = snoop(() => false); // 存在しないチャンネル
-  const addChannelMock = snoop(() => {});
+test('まだ作成されていないチャンネルの場合は、チャンネル追加されてソケットにオーナー登録されること', async (context) => {
+  const getChannelMock = snoop(() => Promise.resolve(false)); // 存在しないチャンネル
+  const addChannelMock = snoop(() => Promise.resolve({}));
   const channelId = faker.datatype.uuid();
   const createChannel = proxyquire('../create-channel', {
     './channel': {
@@ -53,7 +53,7 @@ test('まだ作成されていないチャンネルの場合は、チャンネ�
       v4: () => channelId,
     },
   });
-  const result = createChannel(context.socket, 'test', 'test.ch');
+  const result = await createChannel(context.socket, 'test', 'test.ch');
 
   assert.ok(addChannelMock.called);
   assert.is(addChannelMock.callCount, 1);
@@ -67,9 +67,9 @@ test('まだ作成されていないチャンネルの場合は、チャンネ�
   assert.equal(result, channelId);
 });
 
-test('再接続の場合は、チャンネル追加されずにソケットにオーナー登録されること', (context) => {
-  const getChannelMock = snoop(() => true); // 存在するチャンネル
-  const addChannelMock = snoop(() => {});
+test('再接続の場合は、チャンネル追加されずにソケットにオーナー登録されること', async (context) => {
+  const getChannelMock = snoop(() => Promise.resolve(true)); // 存在するチャンネル
+  const addChannelMock = snoop(() => Promise.resolve({}));
   const channelId = faker.datatype.uuid();
   const createChannel = proxyquire('../create-channel', {
     './channel': {
@@ -77,7 +77,7 @@ test('再接続の場合は、チャンネル追加されずにソケットに�
       addChannel: addChannelMock.fn,
     },
   });
-  const result = createChannel(context.socket, 'test', 'test.ch', channelId);
+  const result = await createChannel(context.socket, 'test', 'test.ch', channelId);
 
   assert.not(addChannelMock.called);
 
