@@ -42,6 +42,7 @@ gcloud run deploy pong-swoosh --source . \
 --allow-unauthenticated \
 --region $REGION \
 --timeout 3600 \
+--max-instances 5 \
 --vpc-connector $CONNECTOR_NAME \
 --set-env-vars REDIS_URL=$REDISHOST
 ```
