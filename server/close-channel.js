@@ -9,7 +9,7 @@ const debug = require('debug')('pong-swoosh');
  * @param {string} channelId -チャンネルID
  */
 module.exports = async (io, userId, channelId) => {
-  const connectedSockets = Array.from(io.of('/').in(channelId).sockets.values());
+  const connectedSockets = await io.of('/').in(channelId).fetchSockets();
   connectedSockets.forEach((socket) => {
     debug(`Leave from ${socket.channel} ${socket.username}@${socket.userrole}`);
     socket.leave(socket.channel);

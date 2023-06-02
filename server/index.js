@@ -29,7 +29,9 @@ const subClient = redis.duplicate();
 subClient.on('error', (err) => {
   console.error(err.message);
 });
-io.adapter(createAdapter(redis, subClient));
+if (process.env.NODE_ENV !== 'test') {
+  io.adapter(createAdapter(redis, subClient));
+}
 
 const { DateTime } = require('luxon');
 
@@ -62,11 +64,10 @@ const deleteChannel = async (event, channelId) => {
   }
 };
 
-const emitLatestParticipants = (socket) => {
+const emitLatestParticipants = async (socket) => {
   debug('emitLatestParticipants');
-  const listeners = Array.from(io.of('/').in(socket.channel).sockets.values()).filter(
-    (s) => s.userrole === 'listener'
-  ).length;
+  const connectedSockets = await io.of('/').in(socket.channel).fetchSockets();
+  const listeners = connectedSockets.filter((s) => s.userrole === 'listener').length;
   io.in(socket.channel).emit('latestParticipants', listeners);
 };
 
@@ -159,7 +160,7 @@ io.on('connection', (socket) => {
    */
   socket.once('connectController', async (event, callback) => {
     debug('connectController', event);
-    const joined = joinChannel(io, socket, 'controller', event.userId, event.channelId);
+    const joined = await joinChannel(io, socket, 'controller', event.userId, event.channelId);
     debug('joinChannel', joined);
     const err = !joined ? Error('Channel is not active') : undefined;
     const customButtons = await findCustomButtonIdsById(event.channelId);
@@ -187,9 +188,8 @@ io.on('connection', (socket) => {
       const pong = getAllPongs(pongBaseUrl).find((p) => p.id === event.id);
       debug('PONG', pong);
       setTimeout(() => redis.decr(`${socket.channel}:${event.id}`), pong.duration * 1000);
-      const listeners = Array.from(io.of('/').in(socket.channel).sockets.values()).filter(
-        (s) => s.userrole === 'listener'
-      ).length;
+      const connectedSockets = await io.of('/').in(socket.channel).fetchSockets();
+      const listeners = connectedSockets.filter((s) => s.userrole === 'listener').length;
       debug('LISTENERS', listeners);
       const volume = Math.sin((Math.PI * 90 * (count / listeners)) / 180);
       const timestamp = DateTime.now().toFormat('yyyyMMddHHmmss');
@@ -215,15 +215,15 @@ io.on('connection', (socket) => {
       callback(err, getChannelPongs(pongBaseUrl, customButtons));
     }
 
-    emitLatestParticipants(socket);
+    await emitLatestParticipants(socket);
 
     /**
      * チャンネル切断イベント
      */
-    socket.once('disconnect', () => {
+    socket.once('disconnect', async () => {
       debug(`Listener disconnect "${event.channelName}" from ${event.userId}`);
       socket.leave(socket.channel);
-      emitLatestParticipants(socket);
+      await emitLatestParticipants(socket);
     });
   });
 });

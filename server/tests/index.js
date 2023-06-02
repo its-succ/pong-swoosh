@@ -75,7 +75,7 @@ test.after(() => {
 test('チャンネル作成が成功すると、コールバックにチャンネルIDが渡されること', async (context) => {
   const userId = 'test.index.create.user';
   const channelName = 'test.index.create.ch';
-  const channelId = faker.datatype.uuid();
+  const channelId = faker.string.uuid();
   createChannelMock = snoop(() => channelId);
 
   const result = await new Promise((resolve, reject) => {
@@ -115,7 +115,7 @@ test('チャンネル作成が失敗すると、コールバックにエラー�
 test('作成済みのチャンネルのボタンをカスタマイズできること', async (context) => {
   const userId = 'test.index.create.user';
   const channelName = 'test.index.create.ch';
-  const channelId = faker.datatype.uuid();
+  const channelId = faker.string.uuid();
   const buttonIds = [1, 3, 7];
   createChannelMock = snoop(() => channelId);
   updateChannelMock = snoop(() => {});
@@ -137,7 +137,7 @@ test('作成済みのチャンネルのボタンをカスタマイズできる�
 test('作成済みのチャンネルを閉じれること', async (context) => {
   const userId = 'test.index.create.user';
   const channelName = 'test.index.create.ch';
-  const channelId = faker.datatype.uuid();
+  const channelId = faker.string.uuid();
   createChannelMock = snoop(() => channelId);
   closeChannelMock = snoop(() => {});
 
@@ -157,8 +157,8 @@ test('作成済みのチャンネルを閉じれること', async (context) => {
 
 test('コントローラが接続できること', async (context) => {
   const userId = 'test.index.controller.user';
-  const channelId = faker.datatype.uuid();
-  joinChannelMock = snoop(() => true);
+  const channelId = faker.string.uuid();
+  joinChannelMock = snoop(() => Promise.resolve(true));
   findCustomButtonIdsByIdMock = snoop(() => undefined);
 
   const defaultPongs = await new Promise((resolve, reject) => {
@@ -177,8 +177,8 @@ test('コントローラが接続できること', async (context) => {
 
 test('コントローラが接続したときカスタムボタンが設定されているときは、それが戻ること', async (context) => {
   const userId = 'test.index.controller.user';
-  const channelId = faker.datatype.uuid();
-  joinChannelMock = snoop(() => true);
+  const channelId = faker.string.uuid();
+  joinChannelMock = snoop(() => Promise.resolve(true));
   findCustomButtonIdsByIdMock = snoop(() => [1, 3, 5, 6]);
 
   const defaultPongs = await new Promise((resolve, reject) => {
@@ -197,8 +197,8 @@ test('コントローラが接続したときカスタムボタンが設定さ�
 
 test('コントローラが接続できないときは、エラーが戻ること', async (context) => {
   const userId = 'test.index.controller.user';
-  const channelId = faker.datatype.uuid();
-  joinChannelMock = snoop(() => false);
+  const channelId = faker.string.uuid();
+  joinChannelMock = snoop(() => Promise.resolve(false));
   findCustomButtonIdsByIdMock = snoop(() => undefined);
 
   const err = await new Promise((resolve, reject) => {
@@ -214,8 +214,8 @@ test('コントローラが接続できないときは、エラーが戻るこ�
 
 test('リスナーが接続できること', async (context) => {
   const userId = 'test.index.listener.user';
-  const channelId = faker.datatype.uuid();
-  joinChannelMock = snoop(() => true);
+  const channelId = faker.string.uuid();
+  joinChannelMock = snoop(() => Promise.resolve(true));
   findCustomButtonIdsByIdMock = snoop(() => undefined);
 
   const defaultPongs = await new Promise((resolve, reject) => {
@@ -234,8 +234,8 @@ test('リスナーが接続できること', async (context) => {
 
 test('リスナーが接続したときカスタムボタンが設定されているときは、それが戻ること', async (context) => {
   const userId = 'test.index.listener.user';
-  const channelId = faker.datatype.uuid();
-  joinChannelMock = snoop(() => true);
+  const channelId = faker.string.uuid();
+  joinChannelMock = snoop(() => Promise.resolve(true));
   findCustomButtonIdsByIdMock = snoop(() => [1, 3, 5, 6]);
 
   const defaultPongs = await new Promise((resolve, reject) => {
@@ -254,8 +254,8 @@ test('リスナーが接続したときカスタムボタンが設定されて�
 
 test('リスナーが接続できないときは、エラーが戻ること', async (context) => {
   const userId = 'test.index.listener.user';
-  const channelId = faker.datatype.uuid();
-  joinChannelMock = snoop(() => false);
+  const channelId = faker.string.uuid();
+  joinChannelMock = snoop(() => Promise.resolve(false));
   findCustomButtonIdsByIdMock = snoop(() => undefined);
 
   const err = await new Promise((resolve, reject) => {

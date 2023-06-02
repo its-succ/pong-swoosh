@@ -43,7 +43,7 @@ test('同一ユーザーで、同一チャンネル名で、再接続でない�
 test('まだ作成されていないチャンネルの場合は、チャンネル追加されてソケットにオーナー登録されること', async (context) => {
   const getChannelMock = snoop(() => Promise.resolve(false)); // 存在しないチャンネル
   const addChannelMock = snoop(() => Promise.resolve({}));
-  const channelId = faker.datatype.uuid();
+  const channelId = faker.string.uuid();
   const createChannel = proxyquire('../create-channel', {
     './channel': {
       getChannel: getChannelMock.fn,
@@ -59,7 +59,7 @@ test('まだ作成されていないチャンネルの場合は、チャンネ�
   assert.is(addChannelMock.callCount, 1);
   assert.equal(addChannelMock.calls[0].arguments, ['test', channelId, 'test.ch']);
 
-  const sockets = Array.from(context.io.of('/').in(channelId).sockets.values());
+  const sockets = await context.io.of('/').in(channelId).fetchSockets();
   assert.equal(sockets.length, 1);
   assert.equal(sockets[0].userrole, 'owner');
   assert.equal(sockets[0].username, 'test');
@@ -70,7 +70,7 @@ test('まだ作成されていないチャンネルの場合は、チャンネ�
 test('再接続の場合は、チャンネル追加されずにソケットにオーナー登録されること', async (context) => {
   const getChannelMock = snoop(() => Promise.resolve(true)); // 存在するチャンネル
   const addChannelMock = snoop(() => Promise.resolve({}));
-  const channelId = faker.datatype.uuid();
+  const channelId = faker.string.uuid();
   const createChannel = proxyquire('../create-channel', {
     './channel': {
       getChannel: getChannelMock.fn,
@@ -81,7 +81,7 @@ test('再接続の場合は、チャンネル追加されずにソケットに�
 
   assert.not(addChannelMock.called);
 
-  const sockets = Array.from(context.io.of('/').in(channelId).sockets.values());
+  const sockets = await context.io.of('/').in(channelId).fetchSockets();
   assert.equal(sockets.length, 1);
   assert.equal(sockets[0].userrole, 'owner');
   assert.equal(sockets[0].username, 'test');

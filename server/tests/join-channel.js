@@ -33,23 +33,29 @@ test.after.each((context) => {
   context.listenerClientSocket.close();
 });
 
-test('参加するチャンネルにオーナーが存在しない場合は参加できない', (context) => {
-  const channelId = faker.datatype.uuid();
-  const result = joinChannel(context.io, context.socket, 'listener', 'test', channelId);
+test('参加するチャンネルにオーナーが存在しない場合は参加できない', async (context) => {
+  const channelId = faker.string.uuid();
+  const result = await joinChannel(context.io, context.socket, 'listener', 'test', channelId);
   assert.equal(result, undefined);
 });
 
-test('オーナーが参加しているチャンネルに参加できること', (context) => {
-  const channelId = faker.datatype.uuid();
+test('オーナーが参加しているチャンネルに参加できること', async (context) => {
+  const channelId = faker.string.uuid();
   context.ownerSocket.join(channelId);
   context.ownerSocket.userrole = 'owner';
   context.ownerSocket.username = 'test.owner';
   context.ownerSocket.channel = channelId;
 
-  const result = joinChannel(context.io, context.socket, 'listener', 'test.listener', channelId);
+  const result = await joinChannel(
+    context.io,
+    context.socket,
+    'listener',
+    'test.listener',
+    channelId
+  );
   assert.equal(result, true);
 
-  const sockets = Array.from(context.io.of('/').in(channelId).sockets.values());
+  const sockets = await context.io.of('/').in(channelId).fetchSockets();
   assert.equal(sockets.length, 2);
   assert.equal(sockets[0].userrole, 'owner');
   assert.equal(sockets[0].username, 'test.owner');

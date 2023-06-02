@@ -9,8 +9,8 @@
  * @param {string} channelId -チャンネルID
  * @returns {boolean} 接続に成功したかどうか
  */
-module.exports = (io, socket, userRole, userId, channelId) => {
-  const connectedSockets = Array.from(io.of('/').in(channelId).sockets.values());
+module.exports = async (io, socket, userRole, userId, channelId) => {
+  const connectedSockets = await io.of('/').in(channelId).fetchSockets();
   if (connectedSockets.findIndex((s) => s.userrole === 'owner') < 0) {
     console.error('#' + channelId + ' was closed.');
     return undefined;
