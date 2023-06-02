@@ -64,7 +64,9 @@ jobs:
       - name: prettier-check
         run: npm run prettier-check
         working-directory: ./server
-      - run: gcloud emulators firestore start --host-port=localhost:8999
+      - run: |
+          gcloud emulators firestore start --host-port=localhost:8999 &
+          curl http://localhost:8999 --silent --retry 30 --retry-connrefused --retry-delay 1
       - name: build
         run: npm t
         working-directory: ./server
