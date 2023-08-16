@@ -1,0 +1,72 @@
+#
+# PR の CI
+#
+name: build
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - 'feature/**'
+      - 'release/**'
+      - develop
+      - main
+    paths:
+      - 'server/**'
+jobs:
+  build:
+    if: |
+      ${{
+        contains(github.head_ref, 'dependabot') ||
+        contains(github.head_ref, 'feature') ||
+        contains(github.head_ref, 'hotfix') ||
+        contains(github.head_ref, 'develop') ||
+        contains(github.head_ref, 'release')
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    strategy:
+      matrix:
+        node-version: [18.x]
+    services:
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      REDIS_URL: redis:6379
+      FIRESTORE_EMULATOR_HOST: localhost:8999
+    steps:
+      - uses: actions/checkout@v3
+      - uses: 'google-github-actions/auth@v1'
+        with:
+          workload_identity_provider: 'principalSet://iam.googleapis.com/projects/971387241895/locations/global/workloadIdentityPools/actions-pool/providers/actions-provider'
+          service_account: 'github-actions@pong-swoosh.iam.gserviceaccount.com'
+      - uses: 'google-github-actions/setup-gcloud@v1'
+        with:
+          install_components: 'cloud-firestore-emulator'
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: install
+        run: npm i
+        working-directory: ./server
+      - name: lint
+        run: npm run lint
+        working-directory: ./server
+      - name: prettier-check
+        run: npm run prettier-check
+        working-directory: ./server
+      - run: |
+          gcloud emulators firestore start --host-port=localhost:8999 &
+          curl http://localhost:8999 --silent --retry 30 --retry-connrefused --retry-delay 1
+      - name: build
+        run: npm t
+        working-directory: ./server

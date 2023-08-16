@@ -12,8 +12,8 @@ const { v4: uuidv4 } = require('uuid');
  * @returns {string} 生成したチャンネルのID（再接続のときは指定されたIDがそのまま戻る）
  * @returns {undefined} 生成に失敗したとき
  */
-module.exports = (socket, userId, channelName, channelId) => {
-  const exists = channel.getChannel(userId, channelName);
+module.exports = async (socket, userId, channelName, channelId) => {
+  const exists = await channel.getChannel(userId, channelName);
   if (exists && !channelId) {
     console.error('#' + channelName + ' exists.');
     return undefined;
@@ -21,7 +21,7 @@ module.exports = (socket, userId, channelName, channelId) => {
   channelId = channelId ? channelId : uuidv4();
 
   if (!exists) {
-    channel.addChannel(userId, channelId, channelName);
+    await channel.addChannel(userId, channelId, channelName);
   }
 
   socket.join(channelId);

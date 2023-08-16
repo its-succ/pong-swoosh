@@ -21,6 +21,17 @@ server.listen(port, () => {
 
 const Redis = require('ioredis');
 const redis = new Redis(process.env.REDIS_URL);
+redis.on('error', (err) => {
+  console.error(err.message);
+});
+const { createAdapter } = require('@socket.io/redis-adapter');
+const subClient = redis.duplicate();
+subClient.on('error', (err) => {
+  console.error(err.message);
+});
+if (process.env.NODE_ENV !== 'test') {
+  io.adapter(createAdapter(redis, subClient));
+}
 
 const { DateTime } = require('luxon');
 
@@ -43,7 +54,7 @@ const pongBaseUrl = ['development', 'test'].includes(process.env.NODE_ENV)
 const deleteChannel = async (event, channelId) => {
   debug(`deleteChannel "${event.channelName}" from ${event.userId}`);
   try {
-    closeChannel(io, event.userId, channelId);
+    await closeChannel(io, event.userId, channelId);
     const keys = await redis.keys(`${channelId}:*`);
     const pipeline = redis.pipeline();
     keys.forEach((key) => pipeline.del(key));
@@ -53,11 +64,10 @@ const deleteChannel = async (event, channelId) => {
   }
 };
 
-const emitLatestParticipants = (socket) => {
+const emitLatestParticipants = async (socket) => {
   debug('emitLatestParticipants');
-  const listeners = Array.from(io.of('/').in(socket.channel).sockets.values()).filter(
-    (s) => s.userrole === 'listener'
-  ).length;
+  const connectedSockets = await io.of('/').in(socket.channel).fetchSockets();
+  const listeners = connectedSockets.filter((s) => s.userrole === 'listener').length;
   io.in(socket.channel).emit('latestParticipants', listeners);
 };
 
@@ -72,9 +82,9 @@ io.on('connection', (socket) => {
    * @param {string} event.channelId - チャンネルID。再接続する場合のみ指定される
    * @param {function} callback コールバック関数
    */
-  socket.once('createChannel', (event, callback) => {
+  socket.once('createChannel', async (event, callback) => {
     debug(`createChannel "${event.channelName}" from ${event.userId}`);
-    const created = createChannel(socket, event.userId, event.channelName, event.channelId);
+    const created = await createChannel(socket, event.userId, event.channelName, event.channelId);
 
     const err = !created ? Error('Channel can not created.') : undefined;
     callback(err, created);
@@ -85,7 +95,7 @@ io.on('connection', (socket) => {
       event.selectedButtons.length > 0
     ) {
       // 再接続の場合は、イベントにselectedButtonsが指定されてくるので、チャンネルをアップデートする
-      updateChannel(event.userId, created, event.selectedButtons);
+      await updateChannel(event.userId, created, event.selectedButtons);
     }
 
     /**
@@ -111,7 +121,7 @@ io.on('connection', (socket) => {
     socket.on('saveCustomButtons', async ({ buttonIds }, callback) => {
       debug(`saveCustomButtons "${buttonIds}" from ${event.userId}`);
       try {
-        updateChannel(event.userId, created, buttonIds);
+        await updateChannel(event.userId, created, buttonIds);
         // ボタンが更新されたことを通知する
         io.in(socket.channel).emit('updatePongs', getChannelPongs(pongBaseUrl, buttonIds));
         if (callback) callback();
@@ -148,12 +158,13 @@ io.on('connection', (socket) => {
    * @param {string} event.channelId - チャンネルID
    * @param {function} callback コールバック関数
    */
-  socket.once('connectController', (event, callback) => {
+  socket.once('connectController', async (event, callback) => {
     debug('connectController', event);
-    const joined = joinChannel(io, socket, 'controller', event.userId, event.channelId);
+    const joined = await joinChannel(io, socket, 'controller', event.userId, event.channelId);
     debug('joinChannel', joined);
     const err = !joined ? Error('Channel is not active') : undefined;
-    callback(err, getChannelPongs(pongBaseUrl, findCustomButtonIdsById(event.channelId)));
+    const customButtons = await findCustomButtonIdsById(event.channelId);
+    callback(err, getChannelPongs(pongBaseUrl, customButtons));
     if (!joined) return;
 
     /**
@@ -177,9 +188,8 @@ io.on('connection', (socket) => {
       const pong = getAllPongs(pongBaseUrl).find((p) => p.id === event.id);
       debug('PONG', pong);
       setTimeout(() => redis.decr(`${socket.channel}:${event.id}`), pong.duration * 1000);
-      const listeners = Array.from(io.of('/').in(socket.channel).sockets.values()).filter(
-        (s) => s.userrole === 'listener'
-      ).length;
+      const connectedSockets = await io.of('/').in(socket.channel).fetchSockets();
+      const listeners = connectedSockets.filter((s) => s.userrole === 'listener').length;
       debug('LISTENERS', listeners);
       const volume = Math.sin((Math.PI * 90 * (count / listeners)) / 180);
       const timestamp = DateTime.now().toFormat('yyyyMMddHHmmss');
@@ -195,24 +205,25 @@ io.on('connection', (socket) => {
    * @param {string} event.channelId - チャンネルID
    * @param {function} callback コールバック関数
    */
-  socket.once('connectListener', (event, callback) => {
+  socket.once('connectListener', async (event, callback) => {
     debug('connectListener', event);
     const joined = joinChannel(io, socket, 'listener', event.userId, event.channelId);
     debug('joinChannel', joined);
     const err = !joined ? Error('Channel is not active') : undefined;
     if (callback) {
-      callback(err, getChannelPongs(pongBaseUrl, findCustomButtonIdsById(event.channelId)));
+      const customButtons = await findCustomButtonIdsById(event.channelId);
+      callback(err, getChannelPongs(pongBaseUrl, customButtons));
     }
 
-    emitLatestParticipants(socket);
+    await emitLatestParticipants(socket);
 
     /**
      * チャンネル切断イベント
      */
-    socket.once('disconnect', () => {
+    socket.once('disconnect', async () => {
       debug(`Listener disconnect "${event.channelName}" from ${event.userId}`);
       socket.leave(socket.channel);
-      emitLatestParticipants(socket);
+      await emitLatestParticipants(socket);
     });
   });
 });

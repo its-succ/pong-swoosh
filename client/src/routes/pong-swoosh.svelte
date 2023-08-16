@@ -175,7 +175,10 @@
       done = resolve;
       error = reject;
     });
-    socket = io(SERVER_URL, { forceNew: true });
+    socket = io(SERVER_URL, {
+      forceNew: true,
+      transports: ['websocket'],
+    });
     const channelSlug = params.channelSlug;
     const fp = await FingerprintJS.load();
     const result = await fp.get();
@@ -226,6 +229,11 @@
     }
     socket.on('connect', () => {
       console.log('connected', socket.id);
+      reconnect();
+    });
+
+    socket.io.on('reconnect', () => {
+      console.log('reconnected', socket.id);
       reconnect();
     });
 
