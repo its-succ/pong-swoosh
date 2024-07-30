@@ -101,7 +101,7 @@ channel.updateChannel = async (userId, channelId, buttonIds) => {
 channel.findCustomButtonIdsById = async (channelId) => {
   const db = channelDb();
   const ch = await db.doc(channelId).get();
-  if (ch) {
+  if (ch && ch.data()) {
     return ch.data().buttonIds;
   }
   return undefined;
