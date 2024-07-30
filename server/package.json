@@ -17,7 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/firestore": "^6.6.1",
+    "@google-cloud/firestore": "^7.9.0",
     "@socket.io/redis-adapter": "^8.3.0",
     "axios": "^0.21.1",
     "cors": "^2.8.5",
