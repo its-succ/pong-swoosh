@@ -22,7 +22,7 @@
     "axios": "^0.21.1",
     "cors": "^2.8.5",
     "debug": "^4.3.6",
-    "express": "^4.19.2",
+    "express": "^4.20.0",
     "ioredis": "^5.4.1",
     "luxon": "^3.4.4",
     "mp3-duration-estimate": "^1.0.1",
