@@ -59,7 +59,7 @@
     "@material/mwc-top-app-bar": "^0.21.0",
     "copy-to-clipboard": "^3.3.3",
     "sirv-cli": "^1.0.14",
-    "socket.io": "^4.7.5",
+    "socket.io": "^4.8.0",
     "socket.io-client": "^4.8.0",
     "svelte-fa": "^3.0.4",
     "svelte-loading-spinners": "^0.1.7",
