@@ -20,7 +20,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.1",
     "@tsconfig/svelte": "^5.0.4",
-    "@types/socket.io-client": "^1.4.36",
+    "@types/socket.io-client": "^3.0.0",
     "@typescript-eslint/eslint-plugin": "^8.12.1",
     "@typescript-eslint/parser": "^8.12.1",
     "eslint": "^8.57.1",

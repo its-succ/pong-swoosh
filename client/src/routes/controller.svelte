@@ -111,8 +111,8 @@ let pongs: any[];
 let buttons = {};
 
 async function signIn() {
-  let done;
-  let error;
+  let done: (value?: unknown) => void;
+  let error: (value?: unknown) => void;
   let disconnected = false;
   const ret = new Promise((resolve, reject) => {
     done = resolve;
@@ -189,7 +189,7 @@ let unit = 'px';
         ballBottomLeft="#40B3FF"
         ballBottomRight="#676778" />
     </div>
-  {:then value}
+  {:then}
     <mwc-top-app-bar>
       <h1 slot="title">pong-swoosh</h1>
       <div>
@@ -215,7 +215,7 @@ let unit = 'px';
           timeoutMs="-1"></mwc-snackbar>
       </div>
     </mwc-top-app-bar>
-  {:catch error}
+  {:catch}
     <mwc-top-app-bar>
       <h1 slot="title">pong-swoosh</h1>
       <div>

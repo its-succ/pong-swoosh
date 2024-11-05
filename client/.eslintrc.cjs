@@ -21,7 +21,7 @@ module.exports = {
     'svelte/valid-compile': 'warn',
     '@typescript-eslint/no-explicit-any': 'warn'
   },
-  plugins: ['prettier', '@typescript-eslint'],
+  plugins: ['prettier', '@typescript-eslint', 'promise'],
   extends: [
     'plugin:@typescript-eslint/recommended',
     'plugin:eslint-comments/recommended',
