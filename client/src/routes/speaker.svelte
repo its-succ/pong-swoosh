@@ -269,7 +269,7 @@ const onClickCanPlay = () => {
             ballBottomLeft="#40B3FF"
             ballBottomRight="#676778" />
         </div>
-      {:then value}
+      {:then}
         <div>
           <h2>
             <Fa icon="{faHeadphones}" size="2x" /><span class="text">スピーカー</span>
@@ -292,7 +292,7 @@ const onClickCanPlay = () => {
             labelText="サーバーから切断されました"
             timeoutMs="-1"></mwc-snackbar>
         </div>
-      {:catch error}
+      {:catch}
         <div>
           <mwc-snackbar labelText="接続できませんでした" open timeoutMs="-1"></mwc-snackbar>
         </div>

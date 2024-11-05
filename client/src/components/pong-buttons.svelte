@@ -82,9 +82,7 @@ input {
           <!-- svelte-ignore a11y-label-has-associated-control -->
           <label>{button.title}</label>
         </button>
-        <!-- svelte-ignore a11y-media-has-caption -->
         <audio src="{button.url}" bind:this="{audios[button.id]}"></audio>
-        <!-- svelte-ignore a11y-invalid-attribute -->
       </li>
     {/each}
   </ul>

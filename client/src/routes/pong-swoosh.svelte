@@ -168,8 +168,8 @@
   let controllerUrl: string | undefined;
 
   async function signIn() {
-    let done;
-    let error;
+    let done: (value?: unknown) => void;
+    let error: (value?: unknown) => void;
     let disconnected = false;
     const ret = new Promise((resolve, reject) => {
       done = resolve;
@@ -209,6 +209,7 @@
         setupPongActions(value).then((results) => {
           pongActions = results;
           done();
+          return results;
         }).catch((e) => {
           error(e);
         });
@@ -360,7 +361,7 @@
             ballBottomLeft="#40B3FF"
             ballBottomRight="#676778" />
         </div>
-      {:then value}
+      {:then}
         <div>
           <div class="control">
             {#if pongActions}
@@ -413,7 +414,7 @@
             閉じる
           </mwc-button>
         </mwc-dialog>
-      {:catch error}
+      {:catch}
         <div>
           <mwc-snackbar labelText="接続できませんでした" open timeoutMs="-1"></mwc-snackbar>
         </div>

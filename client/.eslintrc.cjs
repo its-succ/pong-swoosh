@@ -3,10 +3,11 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
     tsconfigRootDir: __dirname,
+    ecmaVersion: 2020,
+    extraFileExtensions: ['.svelte']
   },
   settings: {
     'import/core-modules': ['svelte'],
-    'svelte3/typescript': true,
   },
   env: {
     browser: true,
@@ -17,19 +18,23 @@ module.exports = {
     'import/no-mutable-exports': 0,
     'no-labels': 0,
     'no-restricted-syntax': 0,
+    'svelte/valid-compile': 'warn',
+    '@typescript-eslint/no-explicit-any': 'warn'
   },
-  plugins: ['prettier', '@typescript-eslint', 'svelte3'],
+  plugins: ['prettier', '@typescript-eslint', 'promise'],
   extends: [
     'plugin:@typescript-eslint/recommended',
     'plugin:eslint-comments/recommended',
     'plugin:promise/recommended',
     'prettier',
     'prettier/@typescript-eslint',
+    'plugin:svelte/recommended'
   ],
   overrides: [
     {
       files: ['**/*.svelte'],
-      processor: 'svelte3/svelte3',
+      parser: 'svelte-eslint-parser',
+      parserOptions: { parser: '@typescript-eslint/parser' }
     },
   ],
 };

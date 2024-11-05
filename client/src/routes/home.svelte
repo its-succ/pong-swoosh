@@ -156,19 +156,20 @@ import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { SERVER_URL } from '../pong-swoosh';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { faUsers, faVolumeUp, faShareAlt, faCog, faRocket, faBug, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faUsers, faVolumeUp, faShareAlt, faCog, faRocket, faBug } from '@fortawesome/free-solid-svg-icons';
 import { faCopy } from '@fortawesome/free-regular-svg-icons';
 import { faGithub } from '@fortawesome/free-brands-svg-icons/faGithub';
 import Fa from 'svelte-fa'
 import copy from 'copy-to-clipboard';
 import PongButtons from './../components/pong-buttons.svelte';
 import type { Dialog } from '@material/mwc-dialog';
+import type { Socket } from 'socket.io-client';
 
 library.add(...[faUsers, faVolumeUp, faShareAlt, faCopy, faCog, faGithub, faRocket, faBug].map((fa) => <IconDefinition>fa));
 
 let channelName = '';
 let pongSwooshUrl: string | undefined;
-let socket;
+let socket: Socket;
 let channelId: string;
 // For Circle3
 let loading = false;
@@ -188,7 +189,7 @@ const createChannel = async () => {
     return;
   }
 
-  socket = io(SERVER_URL, { forceNew: true });
+  socket = io(SERVER_URL, {forceNew: true });
   const fp = await FingerprintJS.load();
   const result = await fp.get();
   const userId = result.visitorId;
@@ -257,8 +258,8 @@ const unload = () => {
 };
 
 const pongCustom = () => {
-  document.querySelector<Dialog>('#pong-custom').show();
-  document.querySelector<Dialog>('#pong-custom').addEventListener('closed', (e) => {
+  document.querySelector<Dialog>('#pong-custom')!.show();
+  document.querySelector<Dialog>('#pong-custom')!.addEventListener('closed', (e) => {
     if ((<CustomEvent>e).detail.action === 'ok') {
       selectedButtons = selectedButtonIds();
       socket.emit('saveCustomButtons', { buttonIds: selectedButtons }, (err) => {
@@ -289,7 +290,6 @@ const pongCustom = () => {
         </div>
         <div class="pongSwooshUrl">
           <div on:click="{copyToClipbord}"><Fa icon={faCopy} size="2x" />&nbsp;</div>
-          <!-- svelte-ignore a11y-missing-content -->
           <a href="{pongSwooshUrl}">{pongSwooshUrl}</a>
         </div>
         {#if defaultButtons}
